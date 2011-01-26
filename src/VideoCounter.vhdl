@@ -52,7 +52,7 @@ signal	IntCounter	: std_logic_vector(BITS - 1 downto 0) := (others => '0');
 constant BLANK_START	: integer := ACTIVE_LEN + BORDER_LEN;
 constant BLANK_END	: integer := BLANK_START + BLANK_LEN - 1;
 constant SYNC_START	: integer := BLANK_START + PORCH_LEN;
-constant SYNC_END	: integer := SYNC_START + SYNC_LEN;
+constant SYNC_END	: integer := SYNC_START + SYNC_LEN - 1;
 
 begin
 
