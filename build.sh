@@ -7,5 +7,8 @@ mkdir -p work
 for f in src/*.vhdl ; do
 	ghdl -a --workdir=work  $f
 done
-ghdl -e --workdir=work tb_hcount
+for module in tb_hcount tb_vcount ; do
+	ghdl -e --workdir=work $module
+done
+
 
