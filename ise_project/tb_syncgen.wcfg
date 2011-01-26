@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/vampire/src/vidgen-vhdl/ise_project/tb_syncgen_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="numeric_std" />
+            <top_module name="std_logic_1164" />
+            <top_module name="tb_syncgen" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="12" />
+   <wvobject fp_name="/tb_syncgen/clock" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clock</obj_property>
+      <obj_property name="ObjectShortName">clock</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/clock_period" type="other" db_ref_id="1">
+      <obj_property name="ElementShortName">clock_period</obj_property>
+      <obj_property name="ObjectShortName">clock_period</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/hcnt/counter" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">counter[8:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[8:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/vcnt/counter" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">counter[8:0]</obj_property>
+      <obj_property name="ObjectShortName">counter[8:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/hcnt/border" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">border</obj_property>
+      <obj_property name="ObjectShortName">border</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/hcnt/blank" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">blank</obj_property>
+      <obj_property name="ObjectShortName">blank</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/hcnt/sync" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sync</obj_property>
+      <obj_property name="ObjectShortName">sync</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/hcnt/carry" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">carry</obj_property>
+      <obj_property name="ObjectShortName">carry</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/vcnt/border" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">border</obj_property>
+      <obj_property name="ObjectShortName">border</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/vcnt/blank" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">blank</obj_property>
+      <obj_property name="ObjectShortName">blank</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/vcnt/sync" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">sync</obj_property>
+      <obj_property name="ObjectShortName">sync</obj_property>
+   </wvobject>
+   <wvobject fp_name="/tb_syncgen/sync_gen/vcnt/carry" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">carry</obj_property>
+      <obj_property name="ObjectShortName">carry</obj_property>
+   </wvobject>
+</wave_config>
