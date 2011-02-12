@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2011-01-29T18:40:42</DateModified>
+  <DateModified>2011-02-12T18:05:29</DateModified>
   <ModuleName>SyncTestTop</ModuleName>
-  <SummaryTimeStamp>2011-01-28T22:25:19</SummaryTimeStamp>
-  <SavedFilePath>/home/vampire/src/vidgen-vhdl/ise_project/iseconfig/SyncGen.xreport</SavedFilePath>
+  <SummaryTimeStamp>Unknown</SummaryTimeStamp>
+  <SavedFilePath>/home/vampire/src/vidgen-vhdl/ise_project/iseconfig/SyncTestTop.xreport</SavedFilePath>
   <ImplementationReportsDirectory>/home/vampire/src/vidgen-vhdl/ise_project</ImplementationReportsDirectory>
-  <DateInitialized>2011-01-29T18:40:42</DateInitialized>
+  <DateInitialized>2011-01-30T22:22:02</DateInitialized>
   <EnableMessageFiltering>false</EnableMessageFiltering>
  </header>
  <body>

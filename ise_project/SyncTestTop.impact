@@ -1,0 +1,13 @@
+setMode -bs
+addDevice -p 1 -file SyncTestTop.jed
+
+setCable -p svf -file /tmp/erase72.svf
+erase -p 1
+
+setCable -p svf -file /tmp/prog72.svf
+program -p 1
+
+setCable -p svf -file /tmp/verify72.svf
+verify -p 1
+
+quit
