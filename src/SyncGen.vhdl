@@ -6,9 +6,12 @@ use ieee.numeric_std.all;
 entity SyncGen is
 port(
 	Clock7		: in  std_logic;				-- master clock (7 MHz)
+	HCount		: out std_logic_vector(8 downto 0);
+	VCount		: out std_logic_vector(8 downto 0);
 	Border		: out std_logic;
 	Blank		: out std_logic;
-	Sync		: out std_logic
+	Sync		: out std_logic;
+	VCarry		: out std_logic
 );
 end SyncGen;
 
@@ -35,8 +38,6 @@ port(
 );
 end component;
 
-signal	HCount		: std_logic_vector(8 downto 0) := (others => '0');
-signal	VCount		: std_logic_vector(8 downto 0) := (others => '0');
 signal	HBorder		: std_logic;
 signal	HBlank		: std_logic;
 signal	HSync		: std_logic;
@@ -82,7 +83,7 @@ begin
 			Border		=> VBorder,
 			Blank		=> VBlank,
 			Sync		=> VSync,
-			Carry		=> open
+			Carry		=> VCarry
 		);
 
 	Border <= HBorder or VBorder;
