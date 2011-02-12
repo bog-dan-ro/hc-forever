@@ -52,10 +52,10 @@ begin
 			BITS		=> 9,
 			TOTAL_LEN	=> 448,
 			ACTIVE_LEN	=> 256,
-			BORDER_LEN	=> 48,
+			BORDER_LEN	=> 48,	-- 64 for compatibile timing
 			BLANK_LEN	=> 96,
 			PORCH_LEN	=> 16,
-			SYNC_LEN	=> 24
+			SYNC_LEN	=> 32
 		)
 		port map (
 			Clock		=> Clock7,
