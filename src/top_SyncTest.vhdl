@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 
-entity SyncTestTop is
+entity top_SyncTest is
 port (
 	Clock7		: in  std_logic;
 	HCount		: out std_logic_vector(8 downto 0);
@@ -14,10 +14,10 @@ port (
 	Flash		: out std_logic;
 	DAC		: out std_logic_vector(1 downto 0)
 );
-end SyncTestTop;
+end top_SyncTest;
 
 
-architecture behavioral of SyncTestTop is
+architecture behavioral of top_SyncTest is
 
 component SyncGen is
 port(
