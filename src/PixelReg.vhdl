@@ -6,8 +6,8 @@ entity PixelReg is
 port (
 	Clock		: in  std_logic;			-- pixel clock
 	DataBus		: in  std_logic_vector(7 downto 0);	-- memory data bus
-	DataLoad	: in  std_logic;			-- latch data into buffer
-	ShiftLoad	: in  std_logic;			-- latch data into shift register
+	BufferLoad	: in  std_logic;			-- latch data into buffer
+	OutputLoad	: in  std_logic;			-- latch data into shift register
 	PixelOut	: out std_logic
 );
 end PixelReg;
@@ -20,9 +20,9 @@ signal ShiftReg		: std_logic_vector(7 downto 0) := (others => '0');
 
 begin
 
-process (DataLoad)
+process (BufferLoad)
 begin
-	if rising_edge(DataLoad) then
+	if rising_edge(BufferLoad) then
 		PixelBuffer <= DataBus;
 	end if;
 end process;
@@ -30,16 +30,16 @@ end process;
 process (Clock)
 begin
 	if falling_edge(Clock) then
-		if ShiftLoad = '1' then
+		if OutputLoad = '1' then
 			ShiftReg <= PixelBuffer;
 		else
-			ShiftReg(6 downto 0) <= ShiftReg(7 downto 1);
-			ShiftReg(7) <= '0';
+			ShiftReg(7 downto 1) <= ShiftReg(6 downto 0);
+			ShiftReg(0) <= '0';
 		end if;
 	end if;
 end process;
 
-PixelOut <= ShiftReg(0);
+PixelOut <= ShiftReg(7);
 
 end architecture;
 
