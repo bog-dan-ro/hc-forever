@@ -33,7 +33,7 @@ VideoFetch <= DataEnableInt and HCounter(3) and HCounter(0) and Clock;
 PixelBufLoad <= VideoFetch and not HCounter(1);
 AttrBufLoad  <= VideoFetch and HCounter(1);
 
-OutputLoad <= HCounter(2) and not HCounter(1) and HCounter(0) and Clock;
+OutputLoad <= HCounter(2) and not HCounter(1) and not HCounter(0) and Clock;
 AttrOutLoad <= OutputLoad;
 PixelOutLoad <= OutputLoad and DataEnableInt;
 
