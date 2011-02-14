@@ -17,6 +17,7 @@ signal PixelOutLoad	: std_logic := '0';
 signal AttrBufLoad	: std_logic := '0';
 signal AttrOutLoad	: std_logic := '0';
 signal HCounter		: std_logic_vector(8 downto 0) := (8 => '1', others => '0');
+signal VCounter		: std_logic_vector(8 downto 0) := (others => '0');
 signal Border		: std_logic := '0';
 signal DataEnable	: std_logic := '0';
 
@@ -67,6 +68,7 @@ begin
 		port map (
 			Clock		=> Clock,
 			HCounter	=> HCounter,
+			VCounter	=> VCounter,
 			Border		=> Border,
 			PixelBufLoad	=> PixelBufLoad,
 			PixelOutLoad	=> PixelOutLoad,
