@@ -5,19 +5,20 @@ use ieee.numeric_std.all;
 entity top_pixels is
 port (
 	Clock7		: in  std_logic := '0';
---	VideoAddress	: inout std_logic_vector(13 downto 0);
+	VideoAddress	: inout std_logic_vector(13 downto 0);
+	VideoData	: in  std_logic_vector(7 downto 0);
+	vram_nOE	: out std_logic;
+	vram_nWE	: out std_logic;
 --	Red		: out std_logic;
 --	Green		: out std_logic;
 --	Blue		: out std_logic;
 --	Highlight	: out std_logic;
-	Flash		: out std_logic;
+	LED		: out std_logic;
 	DAC		: out std_logic_vector(1 downto 0)
 );
 end top_pixels;
 
 architecture behavioral of top_pixels is
-
-signal DataBus		: std_logic_vector(7 downto 0) := x"3c";
 
 signal Pixel		: std_logic := '0';
 signal PixelBufLoad	: std_logic := '0';
@@ -37,7 +38,8 @@ signal RedInt		: std_logic := '0';
 signal GreenInt		: std_logic := '0';
 signal BlueInt		: std_logic := '0';
 
-signal VideoAddress	: std_logic_vector(13 downto 0);
+signal VideoAddressInt	: std_logic_vector(13 downto 0);
+signal VideoAddressEn	: std_logic := '0';
 
 begin
 
@@ -56,7 +58,7 @@ begin
 	pixel_reg: entity work.PixelReg
 		port map (
 			Clock		=> Clock7,
-			DataBus		=> DataBus,
+			DataBus		=> VideoData,
 			BufferLoad	=> PixelBufLoad,
 			OutputLoad	=> PixelOutLoad,
 			PixelOut	=> Pixel
@@ -65,7 +67,7 @@ begin
 	attr_reg: entity work.AttributeReg
 		port map (
 			Clock		=> Clock7,
-			DataBus		=> DataBus,
+			DataBus		=> VideoData,
 			BufferLoad	=> AttrBufLoad,
 			OutputLoad	=> AttrOutLoad,
 			DataEnable	=> DataEnable,
@@ -91,20 +93,15 @@ begin
 			AttrBufLoad	=> AttrBufLoad,
 			AttrOutLoad	=> AttrOutLoad,
 			DataEnable	=> DataEnable,
-			Address		=> VideoAddress,
-			AddressEnable	=> open
+			Address		=> VideoAddressInt,
+			AddressEnable	=> VideoAddressEn
 		);
 
-	DataBus <=
-		x"07" when (VideoAddress(12) = '1' and VideoAddress(9) = '0') else
-		x"ff" when (VCounter = "000000000") else
-		x"55" when (VCounter = "000000001") else
-		x"aa" when (VCounter = "000000010") else
-		"10" & HCounter(8 downto 3);
---	VideoAddress <=
---		VideoAddressInt when VideoAddressEn = '1'
---		else (others => 'Z');
-
+	VideoAddress <=
+		VideoAddressInt when VideoAddressEn = '1'
+		else (others => 'Z');
+	vram_nOE <= not VideoAddressEn;
+	vram_nWE <= '1';
 
 	process (VCarry)
 	begin
@@ -113,7 +110,7 @@ begin
 		end if;
 	end process;
 
-	Flash	<= FlashCount(4);
+	LED	<= FlashCount(3);
 --	Red	<= RedInt;
 --	Green	<= GreenInt;
 --	Blue	<= BlueInt;
