@@ -53,7 +53,8 @@ begin
 			BITS		=> 9,
 			TOTAL_LEN	=> 448,
 			ACTIVE_LEN	=> 256,
-			BORDER_LEN	=> 48,	-- 64 for compatibile timing
+			-- 48 for somewhat better centering, 64 for compatibile timing
+			BORDER_LEN	=> 64,
 			BLANK_LEN	=> 96,
 			PORCH_LEN	=> 16,
 			SYNC_LEN	=> 32
