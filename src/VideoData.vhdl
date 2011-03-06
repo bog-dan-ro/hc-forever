@@ -12,7 +12,8 @@ port (
 	AttrBufLoad	: out std_logic;
 	AttrOutLoad	: out std_logic;
 	DataEnable	: out std_logic;
-	Address		: out std_logic_vector(13 downto 0)
+	Address		: out std_logic_vector(13 downto 0);
+	AddressEnable	: out std_logic
 );
 end VideoData;
 
@@ -69,6 +70,7 @@ PixelAddress <= "0"
 Address <=
 	PixelAddress when PixelAddrEn = '1' else
 	AttrAddress when AttrAddrEn = '1' else
-	(others => 'Z');
+	(others => '-');
+AddressEnable <= PixelAddrEn or AttrAddrEn;
 
 end architecture;
