@@ -32,7 +32,7 @@ signal DelayedHC3	: std_logic;
 
 begin
 
-process (HCounter)
+process (HCounter(3))
 begin
 	if rising_edge(HCounter(3)) then
 		DataEnableInt <= not Border;
