@@ -105,12 +105,12 @@ begin
 
 	process (VCarry)
 	begin
-		if (falling_edge(VCarry)) then
+		if falling_edge(VCarry) then
 			FlashCount <= FlashCount + 1;
 		end if;
 	end process;
 
-	LED	<= FlashCount(3);
+	LED	<= FlashCount(4);
 --	Red	<= RedInt;
 --	Green	<= GreenInt;
 --	Blue	<= BlueInt;
