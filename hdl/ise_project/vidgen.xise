@@ -90,7 +90,7 @@
     <property xil_pn:name="Create Programmable GND Pins on Unused I/O" xil_pn:value="true" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Default Powerup Value of Registers" xil_pn:value="Low" xil_pn:valueState="default"/>
     <property xil_pn:name="Delay Values To Be Read from SDF" xil_pn:value="Setup Time" xil_pn:valueState="default"/>
-    <property xil_pn:name="Device" xil_pn:value="xc9572" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Device" xil_pn:value="xc95108" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Device Family" xil_pn:value="XC9500 CPLDs" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Do Not Escape Signal and Instance Names in Netlist" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Enable FASTConnect/UIM optimization" xil_pn:value="true" xil_pn:valueState="default"/>
@@ -130,7 +130,7 @@
     <property xil_pn:name="Local Macrocell Feedback" xil_pn:value="On" xil_pn:valueState="default"/>
     <property xil_pn:name="Logic Optimization" xil_pn:value="Speed" xil_pn:valueState="default"/>
     <property xil_pn:name="Macro Preserve" xil_pn:value="true" xil_pn:valueState="default"/>
-    <property xil_pn:name="Macrocell Power Setting" xil_pn:value="Std" xil_pn:valueState="default"/>
+    <property xil_pn:name="Macrocell Power Setting" xil_pn:value="Low" xil_pn:valueState="non-default"/>
     <property xil_pn:name="Manual Implementation Compile Order" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Maximum Number of Lines in Report" xil_pn:value="1000" xil_pn:valueState="default"/>
     <property xil_pn:name="Maximum Signal Name Length" xil_pn:value="20" xil_pn:valueState="default"/>
@@ -153,7 +153,7 @@
     <property xil_pn:name="Output Extended Identifiers" xil_pn:value="false" xil_pn:valueState="default"/>
     <property xil_pn:name="Output Slew Rate" xil_pn:value="Fast" xil_pn:valueState="default"/>
     <property xil_pn:name="Overwrite Compiled Libraries" xil_pn:value="false" xil_pn:valueState="default"/>
-    <property xil_pn:name="Package" xil_pn:value="PC84" xil_pn:valueState="non-default"/>
+    <property xil_pn:name="Package" xil_pn:value="PC84" xil_pn:valueState="default"/>
     <property xil_pn:name="Pin Feedback" xil_pn:value="On" xil_pn:valueState="default"/>
     <property xil_pn:name="Port to be used" xil_pn:value="Auto - default" xil_pn:valueState="default"/>
     <property xil_pn:name="Post Place &amp; Route Simulation Model Name" xil_pn:value="top_pixels_timesim.vhd" xil_pn:valueState="default"/>
