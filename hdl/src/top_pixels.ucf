@@ -1,0 +1,32 @@
+NET "Clock7" LOC = "P9";
+NET "LED" LOC = "P41";
+NET "DAC<1>" LOC = "P37";
+NET "DAC<0>" LOC = "P35";
+
+NET "VideoAddress<0>" LOC = "P63";
+NET "VideoAddress<1>" LOC = "P65";
+NET "VideoAddress<2>" LOC = "P66";
+NET "VideoAddress<3>" LOC = "P67";
+NET "VideoAddress<4>" LOC = "P68";
+NET "VideoAddress<5>" LOC = "P69";
+NET "VideoAddress<6>" LOC = "P70";
+NET "VideoAddress<7>" LOC = "P71";
+NET "VideoAddress<8>" LOC = "P79";
+NET "VideoAddress<9>" LOC = "P82";
+NET "VideoAddress<10>" LOC = "P83";
+NET "VideoAddress<11>" LOC = "P81";
+NET "VideoAddress<12>" LOC = "P72";
+NET "VideoAddress<13>" LOC = "P80";
+
+NET "VideoData<0>" LOC = "P62";
+NET "VideoData<1>" LOC = "P61";
+NET "VideoData<2>" LOC = "P58";
+NET "VideoData<3>" LOC = "P57";
+NET "VideoData<4>" LOC = "P56";
+NET "VideoData<5>" LOC = "P55";
+NET "VideoData<6>" LOC = "P54";
+NET "VideoData<7>" LOC = "P53";
+
+NET "vram_nOE" LOC = "P84";
+NET "vram_nWE" LOC = "P75";
+
