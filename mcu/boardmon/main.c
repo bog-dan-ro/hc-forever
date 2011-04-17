@@ -104,6 +104,7 @@ PD5 - temporary LED0
 #define pulldown(signal)	do { _output(signal, 0); _ddr(signal, 1); } while (0)
 
 /******************************************************************************/
+/* Clock generator */
 
 static void clockgen_init(void)
 {
@@ -111,6 +112,247 @@ static void clockgen_init(void)
 	TCCR0 = _BV(WGM01) | _BV(COM00) | _BV(CS00);
 	OCR0 = 0;
 	ddr(CLKOUT, 1);
+}
+
+/******************************************************************************/
+/* Bootstrap */
+
+/* enter bootstrap mode: assert BUSRQ, wait for BUSACK,
+ * set addr & data pin directions
+ */
+static void bootstrap_enable(void)
+{
+	printf_P(PSTR("\nRESET... "));
+	output(RESET_n, 1);	/* otherwise it won't BUSACK */
+
+	printf_P(PSTR("BUSRQ... "));
+
+	output(ADDR_LE, 0);
+	pulldown(BUSRQ_n);
+
+	while (input(BUSACK_n))
+		nop();
+	printf_P(PSTR("BUSACK\n"));
+
+	ADDR_DDR = 0xff;	/* all outputs */
+	DATA_DDR = 0xff;	/* all outputs */
+
+	/* set RD/WR as outputs, high (deasserted) */
+	output(RD_n, 1);
+	output(WR_n, 1);
+	ddr(RD_n, 1);
+	ddr(WR_n, 1);
+}
+
+static void bootstrap_disable(void)
+{
+	ADDR_DDR = 0;		/* all inputs */
+	ADDR_PORT = 0xff;	/* enable pullups */
+	DATA_DDR = 0;		/* all inputs */
+	DATA_PORT = 0xff;	/* enable pullups */
+
+	pullup(RD_n);
+	pullup(WR_n);
+	output(ADDR_LE, 1);	/* work around hang (FIXME) */
+
+	printf_P(PSTR("-BUSRQ... "));
+	pullup(BUSRQ_n);	/* deassert */
+
+	while (!input(BUSACK_n))
+		nop();
+	printf_P(PSTR("-BUSACK\n"));
+}
+
+/******************************************************************************/
+
+static uint32_t lfsr = 0xdeadbeefUL;
+
+static uint32_t rand32(void)
+{
+	/* taps: 32 31 29 1; characteristic polynomial: x^32 + x^31 + x^29 + x + 1 */
+	lfsr = (lfsr >> 1) ^ (-(lfsr & 1u) & 0xd0000001u); 
+
+	return lfsr;
+}
+
+/******************************************************************************/
+/* Memory access */
+
+static void mem_write(unsigned short addr, unsigned char value)
+{
+	ADDR_PORT = addr >> 8;
+	DATA_PORT = addr & 0xff;
+	output(ADDR_LE, 1);
+	output(ADDR_LE, 0);
+
+	DATA_PORT = value;
+	output(WR_n, 0);
+	nop();
+	nop();
+	nop();
+	nop();
+	output(WR_n, 1);
+}
+
+static unsigned char mem_read(unsigned short addr)
+{
+	unsigned char res;
+	unsigned char k;
+
+	ADDR_PORT = addr >> 8;
+	DATA_PORT = addr & 0xff;
+	output(ADDR_LE, 1);
+	output(ADDR_LE, 0);
+
+	/* inputs, no pull-ups */
+	DATA_DDR = 0;
+	DATA_PORT = 0;
+	output(RD_n, 0);
+	for (k = 0; k < 16; k++)
+		nop();
+	res = DATA_PIN;
+	output(RD_n, 1);
+
+	DATA_DDR = 0xff; /* outputs */
+
+	return res;
+}
+
+static void fill_video_mem(char mode, char value)
+{
+	unsigned short k, lo, hi;
+
+	lo = 0;
+	hi = 6912;
+
+	if (mode <= 6)
+		hi = 6144;
+	if (mode >= 7)
+		lo = 6144;
+
+	for (k = lo; k < hi; k++) {
+		char v = value;
+
+		switch (mode) {
+		case 0:
+			v = 0;
+			break;
+		case 1:
+			v = 0xff;
+			break;
+		case 2:
+			v = (k & 0xff);
+			break;
+		case 3:
+			v = ~(k & 0xff);
+			break;
+		case 4:
+			v = 0x55;
+			break;
+		case 5:
+			v = 0xaa;
+			break;
+		case 6:
+		case 7:
+			v = rand32() & 0xff;
+			break;
+		case 8:
+			v = 0x07;
+			break;
+		case 9:
+			v = 0x70;
+			break;
+		}
+		mem_write(0x4000 + k, v);
+	}
+}
+
+static void test_mem(unsigned short low, unsigned short high)
+{
+	unsigned short addr;
+	unsigned char v;
+	unsigned char cnt = 0;
+
+	printf_P(PSTR("test memory: 0x%04x .. 0x%04x\n"), low, high);
+	printf_P(PSTR("- seq fill\n"));
+	v = 0x42;
+	addr = low;
+	do {
+		v = (v << 1) ^ (addr >> 8);
+		v = (v << 1) ^ ~(addr & 0xff);
+		mem_write(addr, v);
+		addr++;
+	} while (addr != high);
+
+	printf_P(PSTR("- seq test\n"));
+	v = 0x42;
+	addr = low;
+	do {
+		unsigned char ch = mem_read(addr);
+
+		v = (v << 1) ^ (addr >> 8);
+		v = (v << 1) ^ ~(addr & 0xff);
+		if (ch != v) {
+			printf_P(PSTR("error at 0x%x: expected 0x%x read 0x%x\n"), addr, v & 0xff, ch & 0xff);
+			if (++cnt > 20) {
+				printf_P(PSTR("too many errors\n"));
+				return;
+			}
+		}
+		addr++;
+	} while (addr != high);
+}
+
+static void dump_mem(void)
+{
+	char row, k;
+	int addr;
+	
+	printf_P(PSTR("addr (hex): "));
+	scanf("%x", &addr);
+	
+	for (row = 0; row < 10; row++) {
+		printf_P(PSTR("\n0x%04x:"), addr);
+		for (k = 0; k < 16; k++) {
+			printf_P(PSTR(" %02x"), mem_read(addr));
+			addr++;
+		}
+	}
+}
+
+static void memtest_menu(void)
+{
+	uint8_t blk;
+
+	while (1) {
+		int ch;
+		
+		printf_P(PSTR("\nmemtest> "));
+		ch = getchar();
+		if (ch == 'q')
+			break;
+
+		bootstrap_enable();
+		switch (ch) {
+		case '0' ... '9':
+			printf_P(PSTR("\nmemory fill #%c"), ch);
+			fill_video_mem(ch - '0', 0);
+			break;
+		case 't':
+			for (blk = 0; blk < 8; blk++) {
+				_delay_ms(100);
+				test_mem(blk * 8192, blk * 8192 + 8191);
+			}
+			break;
+		case 'v':
+			test_mem(16384, 32767);
+			break;
+		case 'd':
+			dump_mem();
+			break;
+		}
+		bootstrap_disable();
+	}
 }
 
 /******************************************************************************/
@@ -123,7 +365,7 @@ int main(void)
 	DDRD = 0;
 	DDRE = 0;
 
-	PORTA = 0xff;	
+	PORTA = 0xff;
 	PORTB = 0xff;
 	PORTC = 0xff;
 	PORTD = 0xff;
@@ -138,7 +380,7 @@ int main(void)
 	_delay_ms(100);
 
 	uart_init();
-	printf_P(PSTR("\n\nHC2006 (C) 2006-2009 by Vampire-\n"
+	printf_P(PSTR("\n\nHC-forever (C) 2006-2011 by Vampire-\n"
 		__DATE__ " " __TIME__ "\n\n"));
 
 	output(LED0, 1);
@@ -150,9 +392,41 @@ int main(void)
 		
 		printf_P(PSTR("\nmon> "));
 		ch = getchar();
+
 		switch (ch) {
-		/* dooo something. */
+		case 'B':
+			bootstrap_enable();
+			printf_P(PSTR("\nbootstrap active."));
+			break;
+		case 'b':
+			bootstrap_disable();
+			printf_P(PSTR("\nbootstrap off."));
+			break;
+
+		case 'P':
+			printf_P(PSTR("\nasserting BUSRQ; BUSACK = %d"), input(BUSACK_n));
+			pulldown(BUSRQ_n);
+			break;
+		case 'p':
+			printf_P(PSTR("\nreleasing BUSRQ; BUSACK = %d"), input(BUSACK_n));
+			pullup(BUSRQ_n);
+			break;
+
+		case 'w':
+			printf_P(PSTR("\nreleasing nWR"));
+			pullup(WR_n);
+			break;
+		case 'W':
+			printf_P(PSTR("\nasserting nWR"));
+			pulldown(WR_n);
+			break;
+
+		case 'm':
+			memtest_menu();
+			break;
+
 		default:
+			/* TODO: print help */
 			break;
 		}
 		
