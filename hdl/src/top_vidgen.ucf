@@ -1,4 +1,4 @@
-NET "Clock7" LOC = "P9";
+NET "Clock7" LOC = "P9" | BUFG = CLK;
 NET "LED" LOC = "P41";
 NET "DAC<1>" LOC = "P37";
 NET "DAC<0>" LOC = "P35";
