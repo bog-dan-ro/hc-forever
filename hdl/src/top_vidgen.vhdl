@@ -27,6 +27,8 @@ port (
 --	Green		: out std_logic;
 --	Blue		: out std_logic;
 --	Highlight	: out std_logic;
+	InFE		: out std_logic;
+	OutFE		: out std_logic;
 	LED		: out std_logic;
 	DAC		: out std_logic_vector(1 downto 0)
 );
@@ -83,6 +85,9 @@ begin
 	CpuVideoSel	<= CpuMemReq and not cpu_a15 and cpu_a14;
 	CpuRomSel	<= CpuMemReq and not cpu_a15 and not cpu_a14;
 	CpuRamSel	<= CpuMemReq and cpu_a15;
+
+	InFE		<= CpuIoReq and not cpu_a0 and CpuReadEn;
+	OutFE		<= CpuIoReq and not cpu_a0 and CpuWriteEn;
 
 	-- bootstrap
 
