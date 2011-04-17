@@ -133,13 +133,14 @@ begin
 
 	-- TODO: chip select
 	VideoRamOutEn <=
-		CpuReadEn when Bootstrap = '1' else
-		'1';
+		'1' when VideoAddressEn = '1' else
+		CpuReadEn;
 	VideoRamWriteEn <=
-		CpuWriteEn when Bootstrap = '1' else
-		'0';
+		'0' when VideoAddressEn = '1' else
+		CpuWriteEn;
 
 	VideoAddress <=
+		VideoAddressInt when VideoAddressEn = '1' else
 		(
 			7 => BootAddress(7),
 			6 => BootAddress(6),
@@ -151,7 +152,7 @@ begin
 			0 => BootAddress(0),
 			others => 'Z'
 		) when Bootstrap = '1' else
-		VideoAddressInt;
+		(others => 'Z');
 
 	vram_nOE <= not VideoRamOutEn;
 	vram_nWE <= not VideoRamWriteEn;
