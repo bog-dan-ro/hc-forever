@@ -57,7 +57,6 @@ signal VideoAddressReq	: std_logic := '0';
 signal VideoAddressEn	: std_logic := '0';
 signal VideoRamOutEn	: std_logic := '0';
 signal VideoRamWriteEn	: std_logic := '0';
-signal RamSelect	: std_logic_vector(0 to 1);
 
 signal Bootstrap	: std_logic;
 signal BootAddress	: std_logic_vector(7 downto 0);
@@ -66,6 +65,9 @@ signal CpuMemReq	: std_logic;
 signal CpuIoReq		: std_logic;
 signal CpuReadEn	: std_logic;
 signal CpuWriteEn	: std_logic;
+signal CpuVideoSel	: std_logic;
+signal CpuRomSel	: std_logic;
+signal CpuRamSel	: std_logic;
 
 begin
 
@@ -75,8 +77,12 @@ begin
 
 	CpuReadEn <= not cpu_nRD;
 	CpuWriteEn <= not cpu_nWR;
-	CpuMemReq <= not cpu_nMREQ;
+	CpuMemReq <= Bootstrap or (not cpu_nMREQ);
 	CpuIoReq <= not cpu_nIORQ;
+
+	CpuVideoSel	<= CpuMemReq and not cpu_a15 and cpu_a14;
+	CpuRomSel	<= CpuMemReq and not cpu_a15 and not cpu_a14;
+	CpuRamSel	<= CpuMemReq and cpu_a15;
 
 	-- bootstrap
 
@@ -144,23 +150,18 @@ begin
 			AddressEnable	=> VideoAddressReq
 		);
 
-	memsel: entity work.MemSelect
-		port map (
-			CpuAddress(15)	=> cpu_a15,
-			CpuAddress(14)	=> cpu_a14,
-			CpuMemReq	=> CpuMemReq,
-			CpuIoReq	=> CpuIoReq,
-			CpuReadEn	=> CpuReadEn,
-			CpuWriteEn	=> CpuWriteEn,
-			Bootstrap	=> Bootstrap,
-			VideoAddressReq	=> VideoAddressReq,
-			RamSelect	=> RamSelect,
-			RamPage		=> ram_a14,
-			VideoRamOutEn	=> VideoRamOutEn,
-			VideoRamWriteEn	=> VideoRamWriteEn
-		);
+	VideoAddressEn <=
+		'0' when Bootstrap = '1' else
+		VideoAddressReq;
 
-	-- memory interface
+	VideoRamOutEn <=
+		'1' when VideoAddressEn = '1' else
+		CpuReadEn when CpuVideoSel = '1' else
+		'0';
+	VideoRamWriteEn <=
+		'0' when VideoAddressEn = '1' else
+		CpuWriteEn when CpuVideoSel = '1'
+		else '0';
 
 	VideoAddress <=
 		VideoAddressInt when VideoAddressEn = '1' else
@@ -179,8 +180,12 @@ begin
 
 	vram_nOE <= not VideoRamOutEn;
 	vram_nWE <= not VideoRamWriteEn;
-	ram_nCS0 <= not RamSelect(0);
-	ram_nCS1 <= not RamSelect(1);
+
+	-- main RAM
+
+	ram_nCS0 <= not CpuRomSel;
+	ram_nCS1 <= not CpuRamSel;
+	ram_a14 <= cpu_a14;
 
 	-- flash
 
