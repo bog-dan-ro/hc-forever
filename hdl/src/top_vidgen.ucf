@@ -30,3 +30,10 @@ NET "VideoData<7>" LOC = "P53";
 NET "vram_nOE" LOC = "P84";
 NET "vram_nWE" LOC = "P75";
 
+NET "cpu_a14" LOC = "P14";
+NET "cpu_a15" LOC = "P15";
+NET "cpu_nRD" LOC = "P11";
+NET "cpu_nWR" LOC = "P13";
+
+NET "nBootstrap" LOC = "P19";
+NET "BootAddressLatch" LOC = "P21";

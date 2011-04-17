@@ -9,6 +9,12 @@ port (
 	VideoData	: in  std_logic_vector(7 downto 0);
 	vram_nOE	: out std_logic;
 	vram_nWE	: out std_logic;
+	cpu_a14		: in  std_logic;
+	cpu_a15		: in  std_logic;
+	cpu_nRD		: in  std_logic;
+	cpu_nWR		: in  std_logic;
+	nBootstrap	: in  std_logic;
+	BootAddressLatch: in  std_logic;
 --	Red		: out std_logic;
 --	Green		: out std_logic;
 --	Blue		: out std_logic;
@@ -39,9 +45,33 @@ signal GreenInt		: std_logic := '0';
 signal BlueInt		: std_logic := '0';
 
 signal VideoAddressInt	: std_logic_vector(13 downto 0);
+signal VideoAddressReq	: std_logic := '0';
 signal VideoAddressEn	: std_logic := '0';
+signal VideoRamOutEn	: std_logic := '0';
+signal VideoRamWriteEn	: std_logic := '0';
+
+signal Bootstrap	: std_logic;
+signal BootAddress	: std_logic_vector(7 downto 0);
+
+signal CpuReadEn	: std_logic;
+signal CpuWriteEn	: std_logic;
 
 begin
+
+	CpuReadEn <= not cpu_nRD;
+	CpuWriteEn <= not cpu_nWR;
+
+	-- bootstrap
+
+	Bootstrap <= not nBootstrap;
+	process (BootAddressLatch)
+	begin
+		if rising_edge(BootAddressLatch) then
+			BootAddress <= VideoData;
+		end if;
+	end process;
+
+	-- video
 
 	sgen: entity work.SyncGen
 		port map (
@@ -94,14 +124,37 @@ begin
 			AttrOutLoad	=> AttrOutLoad,
 			DataEnable	=> DataEnable,
 			Address		=> VideoAddressInt,
-			AddressEnable	=> VideoAddressEn
+			AddressEnable	=> VideoAddressReq
 		);
 
+	VideoAddressEn <=
+		'0' when Bootstrap = '1' else
+		VideoAddressReq;
+
+	-- TODO: chip select
+	VideoRamOutEn <=
+		CpuReadEn when Bootstrap = '1' else
+		'1';
+	VideoRamWriteEn <=
+		CpuWriteEn when Bootstrap = '1' else
+		'0';
+
 	VideoAddress <=
-		VideoAddressInt when VideoAddressEn = '1'
-		else (others => 'Z');
-	vram_nOE <= not VideoAddressEn;
-	vram_nWE <= '1';
+		(
+			7 => BootAddress(7),
+			6 => BootAddress(6),
+			5 => BootAddress(5),
+			4 => BootAddress(4),
+			3 => BootAddress(3),
+			2 => BootAddress(2),
+			1 => BootAddress(1),
+			0 => BootAddress(0),
+			others => 'Z'
+		) when Bootstrap = '1' else
+		VideoAddressInt;
+
+	vram_nOE <= not VideoRamOutEn;
+	vram_nWE <= not VideoRamWriteEn;
 
 	process (VCarry)
 	begin
