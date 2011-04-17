@@ -27,8 +27,8 @@ NET "VideoData<5>" LOC = "P55";
 NET "VideoData<6>" LOC = "P54";
 NET "VideoData<7>" LOC = "P53";
 
-NET "vram_nOE" LOC = "P84";
-NET "vram_nWE" LOC = "P75";
+NET "vram_nOE" LOC = "P84" | PWR_MODE = STD;
+NET "vram_nWE" LOC = "P75" | PWR_MODE = STD;
 
 NET "cpu_a14" LOC = "P14";
 NET "cpu_a15" LOC = "P15";
