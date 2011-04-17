@@ -32,8 +32,18 @@ NET "vram_nWE" LOC = "P75";
 
 NET "cpu_a14" LOC = "P14";
 NET "cpu_a15" LOC = "P15";
+NET "cpu_a0" LOC = "P17";
 NET "cpu_nRD" LOC = "P11";
 NET "cpu_nWR" LOC = "P13";
+NET "cpu_nMREQ" LOC = "P18";
+NET "cpu_nIORQ" LOC = "P25";
+
+NET "cpu_clk" LOC = "P3";
+NET "cpu_nINT" LOC = "P4";
 
 NET "nBootstrap" LOC = "P19";
 NET "BootAddressLatch" LOC = "P21";
+
+NET "ram_nCS0" LOC = "P24";
+NET "ram_nCS1" LOC = "P23";
+NET "ram_a14" LOC = "P20";

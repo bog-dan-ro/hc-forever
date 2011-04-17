@@ -9,10 +9,18 @@ port (
 	VideoData	: in  std_logic_vector(7 downto 0);
 	vram_nOE	: out std_logic;
 	vram_nWE	: out std_logic;
+	cpu_clk		: out std_logic;
+	cpu_nINT	: out std_logic;
 	cpu_a14		: in  std_logic;
 	cpu_a15		: in  std_logic;
+	cpu_a0		: in  std_logic;
 	cpu_nRD		: in  std_logic;
 	cpu_nWR		: in  std_logic;
+	cpu_nMREQ	: in  std_logic;
+	cpu_nIORQ	: in  std_logic;
+	ram_nCS0	: out std_logic;
+	ram_nCS1	: out std_logic;
+	ram_a14		: out std_logic;
 	nBootstrap	: in  std_logic;
 	BootAddressLatch: in  std_logic;
 --	Red		: out std_logic;
@@ -157,6 +165,19 @@ begin
 	vram_nOE <= not VideoRamOutEn;
 	vram_nWE <= not VideoRamWriteEn;
 
+	-- main RAM
+
+	ram_nCS0 <= '1';
+	ram_nCS1 <= '1';
+	ram_a14 <= cpu_a14;
+
+	-- CPU interface
+
+	cpu_clk <= '1';
+	cpu_nINT <= '1';
+
+	-- flash
+
 	process (VCarry)
 	begin
 		if falling_edge(VCarry) then
@@ -168,6 +189,8 @@ begin
 --	Red	<= RedInt;
 --	Green	<= GreenInt;
 --	Blue	<= BlueInt;
+
+	-- composite video (sort of, luma only)
 
 	DAC <=	"00" when SyncInt = '1' else
 		"01" when BlankInt = '1' else
