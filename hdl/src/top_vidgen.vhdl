@@ -61,13 +61,28 @@ signal VideoRamWriteEn	: std_logic := '0';
 signal Bootstrap	: std_logic;
 signal BootAddress	: std_logic_vector(7 downto 0);
 
+signal CpuMemReq	: std_logic;
+signal CpuIoReq		: std_logic;
 signal CpuReadEn	: std_logic;
 signal CpuWriteEn	: std_logic;
+signal CpuVideoSel	: std_logic;
+signal CpuRomSel	: std_logic;
+signal CpuRamSel	: std_logic;
 
 begin
 
+	-- CPU interface
+	cpu_clk <= '1';
+	cpu_nINT <= '1';
+
 	CpuReadEn <= not cpu_nRD;
 	CpuWriteEn <= not cpu_nWR;
+	CpuMemReq <= Bootstrap or (not cpu_nMREQ);
+	CpuIoReq <= not cpu_nIORQ;
+
+	CpuVideoSel	<= CpuMemReq and not cpu_a15 and cpu_a14;
+	CpuRomSel	<= CpuMemReq and not cpu_a15 and not cpu_a14;
+	CpuRamSel	<= CpuMemReq and cpu_a15;
 
 	-- bootstrap
 
@@ -139,13 +154,14 @@ begin
 		'0' when Bootstrap = '1' else
 		VideoAddressReq;
 
-	-- TODO: chip select
 	VideoRamOutEn <=
 		'1' when VideoAddressEn = '1' else
-		CpuReadEn;
+		CpuReadEn when CpuVideoSel = '1' else
+		'0';
 	VideoRamWriteEn <=
 		'0' when VideoAddressEn = '1' else
-		CpuWriteEn;
+		CpuWriteEn when CpuVideoSel = '1'
+		else '0';
 
 	VideoAddress <=
 		VideoAddressInt when VideoAddressEn = '1' else
@@ -167,14 +183,9 @@ begin
 
 	-- main RAM
 
-	ram_nCS0 <= '1';
-	ram_nCS1 <= '1';
+	ram_nCS0 <= not CpuRomSel;
+	ram_nCS1 <= not CpuRamSel;
 	ram_a14 <= cpu_a14;
-
-	-- CPU interface
-
-	cpu_clk <= '1';
-	cpu_nINT <= '1';
 
 	-- flash
 
