@@ -37,10 +37,7 @@ cpp:
 PWD	= $(shell pwd)
 
 flash:	all
-	(cd ~/tar/SP12v2_1.0/Source ; ./sp12 -wpf $(PWD)/main.hex -T1)
-
-poweroff:
-	(cd ~/tar/SP12v2_1.0/Source ; ./sp12 -T0)
+	avrdude -c usbasp -p atmega8515 -U flash:w:main.hex
 
 reset:
-	(cd ~/tar/SP12v2_1.0/Source ; ./sp12 -T1)
+	avrdude -c usbasp -p atmega8515
