@@ -153,7 +153,6 @@ static void bootstrap_disable(void)
 
 	pullup(RD_n);
 	pullup(WR_n);
-	output(ADDR_LE, 1);	/* work around hang (FIXME) */
 
 	printf_P(PSTR("-BUSRQ... "));
 	pullup(BUSRQ_n);	/* deassert */
@@ -180,15 +179,13 @@ static uint32_t rand32(void)
 
 static void mem_write(unsigned short addr, unsigned char value)
 {
-	ADDR_PORT = addr >> 8;
 	DATA_PORT = addr & 0xff;
+	ADDR_PORT = addr >> 8;
 	output(ADDR_LE, 1);
 	output(ADDR_LE, 0);
 
 	DATA_PORT = value;
 	output(WR_n, 0);
-	nop();
-	nop();
 	nop();
 	nop();
 	output(WR_n, 1);
@@ -197,19 +194,25 @@ static void mem_write(unsigned short addr, unsigned char value)
 static unsigned char mem_read(unsigned short addr)
 {
 	unsigned char res;
-	unsigned char k;
 
-	ADDR_PORT = addr >> 8;
 	DATA_PORT = addr & 0xff;
+	ADDR_PORT = addr >> 8;
 	output(ADDR_LE, 1);
 	output(ADDR_LE, 0);
 
 	/* inputs, no pull-ups */
 	DATA_DDR = 0;
 	DATA_PORT = 0;
+	nop();
 	output(RD_n, 0);
-	for (k = 0; k < 16; k++)
-		nop();
+	if ((addr & 0xc000) == 0x4000) {
+		/*
+		 * the vram has a longer access time, either because of
+		 * capacitive loading around the resistor network, or
+		 * extra delay on the /OE signal in the CPLD (or both).
+		 */
+		_delay_us(10);
+	}
 	res = DATA_PIN;
 	output(RD_n, 1);
 
@@ -267,6 +270,13 @@ static void fill_video_mem(char mode, char value)
 	}
 }
 
+static inline unsigned char frob(unsigned char v, unsigned short addr)
+{
+	v = (v << 1) ^ (addr >> 8);
+	v = (v << 1) ^ ~(addr & 0xff);
+	return v;
+}
+
 static void test_mem(unsigned short low, unsigned short high)
 {
 	unsigned short addr;
@@ -278,8 +288,7 @@ static void test_mem(unsigned short low, unsigned short high)
 	v = 0x42;
 	addr = low;
 	do {
-		v = (v << 1) ^ (addr >> 8);
-		v = (v << 1) ^ ~(addr & 0xff);
+		v = frob(v, addr);
 		mem_write(addr, v);
 		addr++;
 	} while (addr != high);
@@ -290,10 +299,10 @@ static void test_mem(unsigned short low, unsigned short high)
 	do {
 		unsigned char ch = mem_read(addr);
 
-		v = (v << 1) ^ (addr >> 8);
-		v = (v << 1) ^ ~(addr & 0xff);
+		v = frob(v, addr);
 		if (ch != v) {
-			printf_P(PSTR("error at 0x%x: expected 0x%x read 0x%x\n"), addr, v & 0xff, ch & 0xff);
+			printf_P(PSTR("error at 0x%04x: expected 0x%02x read 0x%02x xor 0x%02x\n"),
+				addr, v & 0xff, ch & 0xff, (v ^ ch) & 0xff);
 			if (++cnt > 20) {
 				printf_P(PSTR("too many errors\n"));
 				return;
@@ -319,6 +328,18 @@ static void dump_mem(void)
 		}
 	}
 }
+
+static void fill_mem(unsigned short from, unsigned short to, char value)
+{
+	unsigned short addr;
+
+	addr = from;
+	do {
+		mem_write(addr, value);
+		addr++;
+	} while (addr != to);
+}
+
 
 static void memtest_menu(void)
 {
@@ -347,6 +368,19 @@ static void memtest_menu(void)
 		case 'v':
 			test_mem(16384, 32767);
 			break;
+		case 'F': {
+				int from, to, value;
+
+				printf_P(PSTR("\nfill from: "));
+				scanf("%x", &from);
+				printf_P(PSTR("\nto: "));
+				scanf("%x", &to);
+				printf_P(PSTR("\nvalue: "));
+				scanf("%x", &value);
+
+				fill_mem(from, to, value);
+				break;
+			}
 		case 'd':
 			dump_mem();
 			break;
