@@ -455,6 +455,19 @@ int main(void)
 			pulldown(WR_n);
 			break;
 
+		case 'r':
+			pulldown(RESET_n);
+			printf_P(PSTR("\npulsing RESET... "));
+			_delay_ms(100);
+			pullup(RESET_n);
+			printf_P(PSTR("released."));
+			break;
+		case 'R':
+			printf_P(PSTR("\nasserting RESET"));
+			pulldown(RESET_n);
+			break;
+
+
 		case 'm':
 			memtest_menu();
 			break;
