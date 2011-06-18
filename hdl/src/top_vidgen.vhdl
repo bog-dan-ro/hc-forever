@@ -72,16 +72,16 @@ signal CpuVideoSel	: std_logic;
 signal CpuRomSel	: std_logic;
 signal CpuRamSel	: std_logic;
 signal CpuFeReq		: std_logic;
+signal CpuInterrupt	: std_logic;
 
 begin
 
 	-- CPU interface
-	cpu_nINT <= '1';
-
 	CpuReadEn <= not cpu_nRD;
 	CpuWriteEn <= not cpu_nWR;
 	CpuMemReq <= Bootstrap or (not cpu_nMREQ);
 	CpuIoReq <= not cpu_nIORQ;
+	cpu_nINT <= not CpuInterrupt;
 
 	CpuVideoSel	<= CpuMemReq and not cpu_a15 and cpu_a14;
 	CpuRomSel	<= CpuMemReq and not cpu_a15 and not cpu_a14;
@@ -124,6 +124,7 @@ begin
 			Border		=> BorderInt,
 			Blank		=> BlankInt,
 			Sync		=> SyncInt,
+			Interrupt	=> CpuInterrupt,
 			VCarry		=> VCarry
 		);
 

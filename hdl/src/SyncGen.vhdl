@@ -11,6 +11,7 @@ port(
 	Border		: out std_logic;
 	Blank		: out std_logic;
 	Sync		: out std_logic;
+	Interrupt	: out std_logic;
 	VCarry		: out std_logic
 );
 end SyncGen;
@@ -45,6 +46,8 @@ signal	HCarry		: std_logic;
 signal	VBorder		: std_logic;
 signal	VBlank		: std_logic;
 signal	VSync		: std_logic;
+signal	HCountInt	: std_logic_vector(8 downto 0);
+signal	VCountInt	: std_logic_vector(8 downto 0);
 
 begin
 
@@ -61,7 +64,7 @@ begin
 		)
 		port map (
 			Clock		=> Clock7,
-			Counter		=> HCount,
+			Counter		=> HCountInt,
 			Border		=> HBorder,
 			Blank		=> HBlank,
 			Sync		=> HSync,
@@ -80,7 +83,7 @@ begin
 		)
 		port map (
 			Clock		=> HCarry,
-			Counter		=> VCount,
+			Counter		=> VCountInt,
 			Border		=> VBorder,
 			Blank		=> VBlank,
 			Sync		=> VSync,
@@ -90,5 +93,11 @@ begin
 	Border <= HBorder or VBorder;
 	Blank <= HBlank or VBlank;
 	Sync <= HSync or VSync;
+	HCount <= HCountInt;
+	VCount <= VCountInt;
+	Interrupt <= '1' when VSync = '1'
+		and VCountInt(2 downto 0) = "000"
+		and HCountInt(8 downto 6) = "000"
+		else '0';
 
 end behavioral;
