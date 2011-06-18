@@ -22,7 +22,9 @@ signal MreqT23		: std_logic := '0';
 
 begin
 
-	CpuHold		<= IoPortReq or (CpuMemReq and not CpuAddress(15) and CpuAddress(14));
+	CpuHold		<=
+		'0' when (MreqT23 = '1') else
+		IoPortReq or (CpuMemReq and not CpuAddress(15) and CpuAddress(14));
 
 	CpuClockInt	<=
 		'1' when (CpuHold = '1' and VidGenReq = '1') else
