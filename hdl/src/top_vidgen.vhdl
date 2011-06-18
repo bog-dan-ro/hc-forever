@@ -59,6 +59,7 @@ signal VideoAddressReq	: std_logic := '0';
 signal VideoAddressEn	: std_logic := '0';
 signal VideoRamOutEn	: std_logic := '0';
 signal VideoRamWriteEn	: std_logic := '0';
+signal VidGenReq	: std_logic := '0';
 
 signal Bootstrap	: std_logic;
 signal BootAddress	: std_logic_vector(7 downto 0);
@@ -70,11 +71,11 @@ signal CpuWriteEn	: std_logic;
 signal CpuVideoSel	: std_logic;
 signal CpuRomSel	: std_logic;
 signal CpuRamSel	: std_logic;
+signal CpuFeReq		: std_logic;
 
 begin
 
 	-- CPU interface
-	cpu_clk <= '1';
 	cpu_nINT <= '1';
 
 	CpuReadEn <= not cpu_nRD;
@@ -86,8 +87,22 @@ begin
 	CpuRomSel	<= CpuMemReq and not cpu_a15 and not cpu_a14;
 	CpuRamSel	<= CpuMemReq and cpu_a15;
 
+	CpuFeReq	<= CpuIoReq and not cpu_a0;
 	InFE		<= CpuIoReq and not cpu_a0 and CpuReadEn;
 	OutFE		<= CpuIoReq and not cpu_a0 and CpuWriteEn;
+
+	VidGenReq	<= HCounter(2) or HCounter(3);
+
+	arb: entity work.CpuArbiter
+		port map (
+			Clock		=> HCounter(0),
+			CpuAddress(15)	=> cpu_a15,
+			CpuAddress(14)	=> cpu_a14,
+			CpuMemReq	=> CpuMemReq,
+			IoPortReq	=> CpuFeReq,
+			VidGenReq	=> VidGenReq,
+			CpuClock	=> cpu_clk
+		);
 
 	-- bootstrap
 
