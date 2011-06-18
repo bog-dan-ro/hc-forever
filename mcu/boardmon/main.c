@@ -340,6 +340,29 @@ static void fill_mem(unsigned short from, unsigned short to, char value)
 	} while (addr != to);
 }
 
+static void do_load(void)
+{
+	int addr, len, value;
+
+	bootstrap_enable();
+
+	printf_P(PSTR("\nstart address: "));
+	scanf("%x", &addr);
+	printf_P(PSTR("\nlength: "));
+	scanf("%x", &len);
+	printf_P(PSTR("\nvalues: "));
+
+	while (len) {
+		scanf("%x", &value);
+		mem_write(addr, value);
+		addr++;
+		len--;
+	}
+
+	pulldown(RESET_n);
+	bootstrap_disable();
+	printf_P(PSTR("\ndone, reset is asserted."));
+}
 
 static void memtest_menu(void)
 {
@@ -465,6 +488,9 @@ int main(void)
 		case 'R':
 			printf_P(PSTR("\nasserting RESET"));
 			pulldown(RESET_n);
+			break;
+		case 'l':
+			do_load();
 			break;
 
 
