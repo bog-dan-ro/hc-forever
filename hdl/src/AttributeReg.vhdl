@@ -17,7 +17,7 @@ port (
 	Green		: out std_logic;
 	Blue		: out std_logic;
 	Highlight	: out std_logic;
-	Flash		: out std_logic
+	FlashClock	: in  std_logic
 );
 end AttributeReg;
 
@@ -26,6 +26,9 @@ architecture behavioral of AttributeReg is
 
 signal AttrBuffer	: std_logic_vector(7 downto 0) := (others => '0');
 signal OutputBuffer	: std_logic_vector(7 downto 0) := (others => '0');
+
+signal Flash		: std_logic;
+signal FlashedPixel	: std_logic;
 
 signal PrevBufLoad	: std_logic := '0';
 
@@ -53,9 +56,10 @@ begin
 	end if;
 end process;
 
-Blue	<= OutputBuffer(0) when Pixel = '1' else OutputBuffer(3);
-Red	<= OutputBuffer(1) when Pixel = '1' else OutputBuffer(4);
-Green	<= OutputBuffer(2) when Pixel = '1' else OutputBuffer(5);
+FlashedPixel <= Pixel xor (Flash and FlashClock);
+Blue	<= OutputBuffer(0) when FlashedPixel = '1' else OutputBuffer(3);
+Red	<= OutputBuffer(1) when FlashedPixel = '1' else OutputBuffer(4);
+Green	<= OutputBuffer(2) when FlashedPixel = '1' else OutputBuffer(5);
 Highlight	<= OutputBuffer(6);
 Flash		<= OutputBuffer(7);
 

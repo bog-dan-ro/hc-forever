@@ -77,7 +77,7 @@ begin
 			Green		=> Green,
 			Blue		=> Blue,
 			Highlight	=> Highlight,
-			Flash		=> open
+			FlashClock	=> FlashClock
 		);
 
 	vdata: entity work.VideoData
