@@ -35,7 +35,7 @@ begin
 	process (CpuClockInt)
 	begin
 		if rising_edge(CpuClockInt) then
-			MreqT23 <= CpuMemReq;
+			MreqT23 <= CpuMemReq or IoPortReq;
 		end if;
 	end process;
 
