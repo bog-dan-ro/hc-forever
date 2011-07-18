@@ -1,84 +1,37 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity tb_pixels is
 end tb_pixels;
 
 architecture behavioral of tb_pixels is
 
+component top_pixels is
+port (
+	Clock7		: in  std_logic := '0';
+	VideoAddress	: inout std_logic_vector(13 downto 0);
+	VideoData	: in  std_logic_vector(7 downto 0);
+	vram_nOE	: out std_logic;
+	vram_nWE	: out std_logic;
+	LED		: out std_logic;
+	DAC		: out std_logic_vector(1 downto 0)
+);
+end component;
+
 constant CLOCK_PERIOD : time := 142 ns;
 
 signal Clock		: std_logic := '0';             -- tb clock
-signal DataBus		: std_logic_vector(7 downto 0) := x"3c";
-
-signal Pixel		: std_logic := '0';
-signal PixelBufLoad	: std_logic := '0';
-signal PixelOutLoad	: std_logic := '0';
-signal AttrBufLoad	: std_logic := '0';
-signal AttrOutLoad	: std_logic := '0';
-signal HCounter		: std_logic_vector(8 downto 0) := (8 => '1', others => '0');
-signal VCounter		: std_logic_vector(8 downto 0) := (others => '0');
-signal Border		: std_logic := '0';
-signal DataEnable	: std_logic := '0';
+signal Counter		: std_logic_vector(8 downto 0) := (8 => '1', others => '0');
 
 begin
 
-	hcnt: entity work.VideoCounter
-		generic map (
-			BITS		=> 9,
-			TOTAL_LEN	=> 448,
-			ACTIVE_LEN	=> 256,
-			BORDER_LEN	=> 48,
-			BLANK_LEN	=> 96,
-			PORCH_LEN	=> 16,
-			SYNC_LEN	=> 24
-		)
+	top: top_pixels
 		port map (
-			Clock		=> Clock,
-			Enable		=> '1',
-			Counter		=> HCounter,
-			Border		=> Border,
-			Blank		=> open,
-			Sync		=> open,
-			Carry		=> open
+			Clock7		=> Clock,
+			VideoAddress	=> open,
+			VideoData	=> Counter(7 downto 0)
 		);
-
-	pixel_reg: entity work.PixelReg
-		port map (
-			Clock		=> Clock,
-			DataBus		=> DataBus,
-			BufferLoad	=> PixelBufLoad,
-			OutputLoad	=> PixelOutLoad,
-			PixelOut	=> Pixel
-		);
-
-	attr_reg: entity work.AttributeReg
-		port map (
-			Clock		=> Clock,
-			DataBus		=> DataBus,
-			BufferLoad	=> AttrBufLoad,
-			OutputLoad	=> AttrOutLoad,
-			DataEnable	=> DataEnable,
-			Pixel		=> Pixel,
-			BorderRed	=> '0',
-			BorderGreen	=> '1',
-			BorderBlue	=> '1'
-		);
-
-	vdata: entity work.VideoData
-		port map (
-			Clock		=> Clock,
-			HCounter	=> HCounter,
-			VCounter	=> VCounter,
-			Border		=> Border,
-			PixelBufLoad	=> PixelBufLoad,
-			PixelOutLoad	=> PixelOutLoad,
-			AttrBufLoad	=> AttrBufLoad,
-			AttrOutLoad	=> AttrOutLoad,
-			DataEnable	=> DataEnable
-		);
-
-	DataBus <= HCounter(DataBus'range);
 
 	clock_gen: process
 	begin
@@ -86,6 +39,13 @@ begin
 		wait for CLOCK_PERIOD / 2;
 		Clock <= '1';
 		wait for CLOCK_PERIOD / 2;
+	end process;
+
+	process (Clock)
+	begin
+		if rising_edge(Clock) then
+			Counter <= std_logic_vector(unsigned(Counter) + 1);
+		end if;
 	end process;
 
 end architecture;
