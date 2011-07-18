@@ -1,0 +1,186 @@
+Import('project', 'ucf', 'part', 'chiptype')
+
+keep_env_vars = [
+	'PATH',
+	'HOME',
+# currently not used:
+#	'LD_LIBRARY_PATH',
+#	'LMC_HOME',
+#	'XILINX',
+#	'XILINX_DSP',
+#	'XILINX_PLANAHEAD',
+#	'XIL_SCRIPT_LOC_TMP_UNI',
+]
+
+import os
+env_env = {}
+
+for name in keep_env_vars:
+	try:
+		env_env[name] = os.environ[name]
+	except KeyError:
+		pass
+env = Environment(ENV = env_env)
+
+import re
+include_re = re.compile('^vhdl\s+\S+\s+"(\S+)"$', re.M)
+def scan_prj(node, env, path):
+	contents = node.get_text_contents()
+	includes = include_re.findall(contents)
+	return [env.Dir('build').File(inc) for inc in includes]
+
+env.Append(
+	SCANNERS = Scanner(function = scan_prj, skeys = ['.prj']),
+)
+
+env.Command(
+	[
+		'build/%s.syr' % project,
+		'build/%s.lso' % project,
+		'build/%s.ngc' % project,
+		'build/%s.ngr' % project,
+		'build/%s_xst.xrpt' % project,
+	],
+	[
+		'src/syn/%s.xst' % project,
+		'src/syn/%s.prj' % project,
+	],
+	"cd build && xst -intstyle ise -ifn ${SOURCES[0].abspath} -ofn ${TARGETS[0].name}"
+)
+
+env.Command(
+	[
+		'build/%s.ngd' % project,
+		'build/%s.bld' % project,
+		'build/%s_ngdbuild.xrpt' % project,
+	],
+	[
+		ucf,
+		'build/%s.ngc' % project,
+	],
+	"cd build && ngdbuild -intstyle ise -dd _ngo -nt timestamp"
+	+ " -uc ${SOURCES[0].abspath}"
+	+ " -p %s" % part
+	+ " ${SOURCES[1].name} ${TARGETS[0].name}"
+)
+
+if chiptype == "cpld":
+	env.Command(
+		[
+			'build/%s.xml' % project,
+			'build/%s.vm6' % project,
+			'build/%s.rpt' % project,
+			'build/%s.pnx' % project,
+			'build/%s_pad.csv' % project,
+			'build/%s.pad' % project,
+			'build/%s.mfd' % project,
+			'build/%s.gyd' % project,
+			'build/%s_build.xml' % project,
+		],
+		[
+			'build/%s.ngd' % project,
+		],
+		"cd build && cpldfit -intstyle ise -p %s" % part
+		+ " -ofmt vhdl -optimize speed -htmlrpt -loc on -slew fast -init low "
+		+ " -inputs 36 -pterms 25 -unused ground -power low -localfbk -pinfbk ${SOURCES[0].name}"
+	)
+
+	env.Command(
+		[
+			# many files under build/%s_html/...
+		],
+		[
+			'build/%s_build.xml' % project,
+		],
+		"cd build && XSLTProcess ${SOURCES[0].name}"
+	)
+
+	env.Command(
+		[
+			'build/%s.nga' % project,
+		],
+		[
+			'build/%s.vm6' % project,
+		],
+		"cd build && tsim %s ${TARGETS[0].name}" % project
+	)
+
+	env.Command(
+		[
+			'build/%s.jed' % project,
+		],
+		[
+			'build/%s.vm6' % project,
+		],
+		"cd build && hprep6 -s IEEE1149 -n %s -i %s" % (project, project)
+	)
+
+if chiptype == "fpga":
+	env.Command(
+		[
+			'build/%s_map.ncd' % project,
+			'build/%s.pcf' % project,
+			'build/%s_usage.xml' % project,
+			'build/%s_summary.xml' % project,
+			'build/%s_map.ngm' % project,
+			'build/%s_map.mrp' % project,
+			'build/%s_map.map' % project,
+			'build/%s_map.xrpt' % project,
+		],
+		[
+			'build/%s.ngd' % project,
+		],
+		"cd build && map -intstyle ise -p %s -cm area -ir off -pr off -c 100" % part
+		+ " -o ${TARGETS[0].name} ${SOURCES[0].name} ${TARGETS[1].name}"
+	)
+
+	env.Command(
+		[
+			'build/%s.ncd' % project,
+			'build/%s.xpi' % project,
+			'build/%s.unroutes' % project,
+			'build/%s.ptwx' % project,
+			'build/%s.par' % project,
+			'build/%s_pad.txt' % project,
+			'build/%s_pad.csv' % project,
+			'build/%s.pad' % project,
+			'build/%s_par.xrpt' % project,
+		],
+		[
+			'build/%s_map.ncd' % project,
+			'build/%s.pcf' % project,
+		],
+		"cd build && par -w -intstyle ise -ol high -t 1"
+		+ " ${SOURCES[0].name} ${TARGETS[0].name} ${SOURCES[1].name}"
+	)
+
+	env.Command(
+		[
+			'build/%s.twx' % project,
+			'build/%s.twr' % project,
+		],
+		[
+			'build/%s.ncd' % project,
+			'build/%s.pcf' % project,
+		],
+		"cd build && trce -intstyle ise -v 3 -s 4 -n 3 -fastpaths"
+		+ " -xml ${TARGETS[0].name} ${SOURCES[0].name}"
+		+ " -o ${TARGETS[1].name} ${SOURCES[1].name}"
+	)
+
+	env.Command(
+		[
+			'build/%s.bit' % project,
+			'build/%s.bgn' % project,
+			'build/%s.drc' % project,
+			'build/%s_bitgen.xwbt' % project,
+			#'build/%s_usage.xml' % project,
+			#'build/%s_summary.xml' % project,
+			#'build/webtalk.log',
+		],
+		[
+			'src/syn/%s.ut' % project,
+			'build/%s.ncd' % project,
+		],
+		"cd build && bitgen -intstyle ise -f ${SOURCES[0].abspath} ${SOURCES[1].name}"
+	)

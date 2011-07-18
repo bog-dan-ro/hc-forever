@@ -1,0 +1,26 @@
+run
+-ifn ../src/syn/top_vidgen.prj
+-ifmt mixed
+-ofn top_vidgen
+-ofmt NGC
+-p xc9500
+-top top_vidgen
+-opt_mode Area
+-opt_level 1
+-iuc NO
+-keep_hierarchy Yes
+-netlist_hierarchy As_Optimized
+-rtlview Yes
+-hierarchy_separator /
+-bus_delimiter <>
+-case Maintain
+-verilog2001 YES
+-fsm_extract YES -fsm_encoding Auto
+-safe_implementation No
+-mux_extract Yes
+-resource_sharing YES
+-iobuf YES
+-pld_mp YES
+-pld_xp YES
+-wysiwyg NO
+-equivalent_register_removal YES

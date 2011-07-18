@@ -1,0 +1,9 @@
+projects = [
+	('cpld', 'top_vidgen', 'src/top_vidgen.ucf', 'xc95108-7-PC84'),
+	('fpga', 'fpga_vidgen', 'src/fpga_vidgen.ucf', 'xc3s500e-vq100-4'),
+]
+
+for chiptype, project, ucf, part in projects:
+	SConscript('SConscript', exports = [
+		'project', 'ucf', 'part', 'chiptype',
+	])
