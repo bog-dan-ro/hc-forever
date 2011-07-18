@@ -20,17 +20,7 @@ end top_pixels;
 
 architecture behavioral of top_pixels is
 
-signal Pixel		: std_logic := '0';
-signal PixelBufLoad	: std_logic := '0';
-signal PixelOutLoad	: std_logic := '0';
-signal AttrBufLoad	: std_logic := '0';
-signal AttrOutLoad	: std_logic := '0';
-signal HCounter		: std_logic_vector(8 downto 0) := (others => '0');
-signal VCounter		: std_logic_vector(8 downto 0) := (others => '0');
-signal DataEnable	: std_logic := '0';
-
 signal Carry		: std_logic := '0';
-signal BorderInt	: std_logic := '0';
 signal BlankInt		: std_logic := '0';
 signal SyncInt		: std_logic := '0';
 signal FlashCount	: unsigned(4 downto 0) := (others => '0');
@@ -43,58 +33,25 @@ signal VideoAddressEn	: std_logic := '0';
 
 begin
 
-	sgen: entity work.SyncGen
+	vidgen: entity work.VideoGen
 		port map (
 			Clock7		=> Clock7,
-			HCount		=> HCounter,
-			VCount		=> VCounter,
-			Border		=> BorderInt,
-			Blank		=> BlankInt,
-			Sync		=> SyncInt,
-			Carry		=> Carry
-		);
-
-
-	pixel_reg: entity work.PixelReg
-		port map (
-			Clock		=> Clock7,
-			DataBus		=> VideoData,
-			BufferLoad	=> PixelBufLoad,
-			OutputLoad	=> PixelOutLoad,
-			PixelOut	=> Pixel
-		);
-
-	attr_reg: entity work.AttributeReg
-		port map (
-			Clock		=> Clock7,
-			DataBus		=> VideoData,
-			BufferLoad	=> AttrBufLoad,
-			OutputLoad	=> AttrOutLoad,
-			DataEnable	=> DataEnable,
-			Pixel		=> Pixel,
-			BorderRed	=> '0',
-			BorderGreen	=> '1',
-			BorderBlue	=> '1',
+			VideoAddress	=> VideoAddressInt,
+			VideoData	=> VideoData,
+			VideoDataEn	=> VideoAddressEn,
+			VideoBusReq	=> open,
+			FrameInterrupt	=> open,
+			FrameCarry	=> Carry,
 			Red		=> RedInt,
 			Green		=> GreenInt,
 			Blue		=> BlueInt,
 			Highlight	=> open,
-			Flash		=> open
-		);
-
-	vdata: entity work.VideoData
-		port map (
-			Clock		=> Clock7,
-			HCounter	=> HCounter,
-			VCounter	=> VCounter,
-			Border		=> BorderInt,
-			PixelBufLoad	=> PixelBufLoad,
-			PixelOutLoad	=> PixelOutLoad,
-			AttrBufLoad	=> AttrBufLoad,
-			AttrOutLoad	=> AttrOutLoad,
-			DataEnable	=> DataEnable,
-			Address		=> VideoAddressInt,
-			AddressEnable	=> VideoAddressEn
+			Blank		=> BlankInt,
+			Sync		=> SyncInt,
+			BorderRed	=> '0',
+			BorderGreen	=> '1',
+			BorderBlue	=> '1',
+			FlashClock	=> FlashCount(4)
 		);
 
 	VideoAddress <=

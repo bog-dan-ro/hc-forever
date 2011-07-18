@@ -36,17 +36,8 @@ end top_vidgen;
 
 architecture behavioral of top_vidgen is
 
-signal Pixel		: std_logic := '0';
-signal PixelBufLoad	: std_logic := '0';
-signal PixelOutLoad	: std_logic := '0';
-signal AttrBufLoad	: std_logic := '0';
-signal AttrOutLoad	: std_logic := '0';
-signal HCounter		: std_logic_vector(8 downto 0) := (others => '0');
-signal VCounter		: std_logic_vector(8 downto 0) := (others => '0');
-signal DataEnable	: std_logic := '0';
-
+signal Clock3p5		: std_logic := '0';
 signal Carry		: std_logic := '0';
-signal BorderInt	: std_logic := '0';
 signal BlankInt		: std_logic := '0';
 signal SyncInt		: std_logic := '0';
 signal FlashCount	: unsigned(4 downto 0) := (others => '0');
@@ -91,11 +82,9 @@ begin
 	InFE		<= CpuIoReq and not cpu_a0 and CpuReadEn;
 	OutFE		<= CpuIoReq and not cpu_a0 and CpuWriteEn;
 
-	VidGenReq	<= HCounter(2) or HCounter(3);
-
 	arb: entity work.CpuArbiter
 		port map (
-			Clock		=> HCounter(0),
+			Clock		=> Clock3p5,
 			CpuAddress(15)	=> cpu_a15,
 			CpuAddress(14)	=> cpu_a14,
 			CpuMemReq	=> CpuMemReq,
@@ -116,59 +105,26 @@ begin
 
 	-- video
 
-	sgen: entity work.SyncGen
+	vidgen: entity work.VideoGen
 		port map (
 			Clock7		=> Clock7,
-			HCount		=> HCounter,
-			VCount		=> VCounter,
-			Border		=> BorderInt,
-			Blank		=> BlankInt,
-			Sync		=> SyncInt,
-			Interrupt	=> CpuInterrupt,
-			Carry		=> Carry
-		);
-
-
-	pixel_reg: entity work.PixelReg
-		port map (
-			Clock		=> Clock7,
-			DataBus		=> VideoData,
-			BufferLoad	=> PixelBufLoad,
-			OutputLoad	=> PixelOutLoad,
-			PixelOut	=> Pixel
-		);
-
-	attr_reg: entity work.AttributeReg
-		port map (
-			Clock		=> Clock7,
-			DataBus		=> VideoData,
-			BufferLoad	=> AttrBufLoad,
-			OutputLoad	=> AttrOutLoad,
-			DataEnable	=> DataEnable,
-			Pixel		=> Pixel,
-			BorderRed	=> '0',
-			BorderGreen	=> '1',
-			BorderBlue	=> '1',
+			Clock3p5	=> Clock3p5,
+			VideoAddress	=> VideoAddressInt,
+			VideoData	=> VideoData,
+			VideoDataEn	=> VideoAddressReq,
+			VideoBusReq	=> VidGenReq,
+			FrameInterrupt	=> CpuInterrupt,
+			FrameCarry	=> Carry,
 			Red		=> RedInt,
 			Green		=> GreenInt,
 			Blue		=> BlueInt,
 			Highlight	=> open,
-			Flash		=> open
-		);
-
-	vdata: entity work.VideoData
-		port map (
-			Clock		=> Clock7,
-			HCounter	=> HCounter,
-			VCounter	=> VCounter,
-			Border		=> BorderInt,
-			PixelBufLoad	=> PixelBufLoad,
-			PixelOutLoad	=> PixelOutLoad,
-			AttrBufLoad	=> AttrBufLoad,
-			AttrOutLoad	=> AttrOutLoad,
-			DataEnable	=> DataEnable,
-			Address		=> VideoAddressInt,
-			AddressEnable	=> VideoAddressReq
+			Blank		=> BlankInt,
+			Sync		=> SyncInt,
+			BorderRed	=> '0',
+			BorderGreen	=> '1',
+			BorderBlue	=> '1',
+			FlashClock	=> FlashCount(4)
 		);
 
 	VideoAddressEn <=
