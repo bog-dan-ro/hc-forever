@@ -8,7 +8,8 @@ generic (
 	BITS		: integer := 9					-- number of counter bits
 );
 port(
-	Clock		: in  std_logic;				-- input clock (count on falling edge)
+	Clock		: in  std_logic;				-- input clock (count on rising edge)
+	Enable		: in  std_logic;				-- enable input
 	SyncReset	: in  std_logic;				-- synchronous reset input
 	Counter		: out std_logic_vector(BITS - 1 downto 0)	-- counter output bits
 );
@@ -23,7 +24,7 @@ begin
 
 process(Clock)
 begin
-	if (falling_edge(Clock)) then
+	if rising_edge(Clock) and Enable = '1' then
 		if SyncReset = '1' then
 			IntCounter <= (others => '0');
 		else

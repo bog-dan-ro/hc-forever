@@ -33,18 +33,18 @@ signal DelayedHC3	: std_logic;
 
 begin
 
-process (HCounter(3))
+process (Clock)
 begin
-	if rising_edge(HCounter(3)) then
+	if rising_edge(Clock) and HCounter(2 downto 0) = "111" then
 		DataEnableInt <= not Border;
 	end if;
 end process;
 
-VideoFetch <= DataEnableInt and HCounter(3) and HCounter(0) and Clock;
+VideoFetch <= DataEnableInt and HCounter(3) and HCounter(0);
 PixelBufLoad <= VideoFetch and not HCounter(1);
 AttrBufLoad  <= VideoFetch and HCounter(1);
 
-OutputLoad <= HCounter(2) and not HCounter(1) and not HCounter(0) and Clock;
+OutputLoad <= HCounter(2) and not HCounter(1) and not HCounter(0);
 AttrOutLoad <= OutputLoad;
 PixelOutLoad <= OutputLoad and DataEnableInt;
 

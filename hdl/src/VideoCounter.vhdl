@@ -23,7 +23,8 @@ generic (
 	SYNC_LEN	: integer
 );
 port(
-	Clock		: in  std_logic;				-- input clock (count on falling edge)
+	Clock		: in  std_logic;				-- input clock (count on rising edge)
+	Enable		: in  std_logic;				-- enable input
 	Counter		: out std_logic_vector(BITS - 1 downto 0);	-- counter output bits
 	Border		: out std_logic;
 	Blank		: out std_logic;
@@ -40,7 +41,8 @@ generic (
 	BITS		: integer := 9					-- number of counter bits
 );
 port(
-	Clock		: in  std_logic;				-- input clock (count on falling edge)
+	Clock		: in  std_logic;				-- input clock (count on rising edge)
+	Enable		: in  std_logic;				-- enable input
 	SyncReset	: in  std_logic;				-- synchronous reset input
 	Counter		: out std_logic_vector(BITS - 1 downto 0)	-- counter output bits
 );
@@ -62,6 +64,7 @@ cnt: SyncCounter
 	)
 	port map (
 		Clock		=> Clock,
+		Enable		=> Enable,
 		SyncReset	=> CounterReset,
 		Counter		=> IntCounter
 	);

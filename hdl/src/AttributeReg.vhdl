@@ -27,18 +27,19 @@ architecture behavioral of AttributeReg is
 signal AttrBuffer	: std_logic_vector(7 downto 0) := (others => '0');
 signal OutputBuffer	: std_logic_vector(7 downto 0) := (others => '0');
 
-begin
+signal PrevBufLoad	: std_logic := '0';
 
-process (BufferLoad)
 begin
-	if rising_edge(BufferLoad) then
-		AttrBuffer <= DataBus;
-	end if;
-end process;
 
 process (Clock)
 begin
-	if falling_edge(Clock) then
+	if rising_edge(Clock) then
+		-- TODO: this simulates a real edge-triggered FF, but is probably not needed
+		if BufferLoad = '1' and PrevBufLoad = '0' then
+			AttrBuffer <= DataBus;
+		end if;
+		PrevBufLoad <= BufferLoad;
+
 		if OutputLoad = '1' then
 			OutputBuffer <= AttrBuffer;
 			if DataEnable = '0' then

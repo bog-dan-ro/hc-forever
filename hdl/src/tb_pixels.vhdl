@@ -35,6 +35,7 @@ begin
 		)
 		port map (
 			Clock		=> Clock,
+			Enable		=> '1',
 			Counter		=> HCounter,
 			Border		=> Border,
 			Blank		=> open,

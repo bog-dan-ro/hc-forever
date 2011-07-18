@@ -29,7 +29,7 @@ signal HCounter		: std_logic_vector(8 downto 0) := (others => '0');
 signal VCounter		: std_logic_vector(8 downto 0) := (others => '0');
 signal DataEnable	: std_logic := '0';
 
-signal VCarry		: std_logic := '0';
+signal Carry		: std_logic := '0';
 signal BorderInt	: std_logic := '0';
 signal BlankInt		: std_logic := '0';
 signal SyncInt		: std_logic := '0';
@@ -51,7 +51,7 @@ begin
 			Border		=> BorderInt,
 			Blank		=> BlankInt,
 			Sync		=> SyncInt,
-			VCarry		=> VCarry
+			Carry		=> Carry
 		);
 
 
@@ -103,9 +103,9 @@ begin
 	vram_nOE <= not VideoAddressEn;
 	vram_nWE <= '1';
 
-	process (VCarry)
+	process (Clock7)
 	begin
-		if falling_edge(VCarry) then
+		if rising_edge(Clock7) and Carry = '1' then
 			FlashCount <= FlashCount + 1;
 		end if;
 	end process;

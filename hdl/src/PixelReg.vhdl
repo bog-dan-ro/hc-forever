@@ -18,18 +18,19 @@ architecture behavioral of PixelReg is
 signal PixelBuffer	: std_logic_vector(7 downto 0) := (others => '0');
 signal ShiftReg		: std_logic_vector(7 downto 0) := (others => '0');
 
-begin
+signal PrevBufLoad	: std_logic := '0';
 
-process (BufferLoad)
 begin
-	if rising_edge(BufferLoad) then
-		PixelBuffer <= DataBus;
-	end if;
-end process;
 
 process (Clock)
 begin
-	if falling_edge(Clock) then
+	if rising_edge(Clock) then
+		-- TODO: this simulates a real edge-triggered FF, but is probably not needed
+		if BufferLoad = '1' and PrevBufLoad = '0' then
+			PixelBuffer <= DataBus;
+		end if;
+		PrevBufLoad <= BufferLoad;
+
 		if OutputLoad = '1' then
 			ShiftReg <= PixelBuffer;
 		else

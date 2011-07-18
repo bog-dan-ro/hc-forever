@@ -27,11 +27,11 @@ port(
 	Border		: out std_logic;
 	Blank		: out std_logic;
 	Sync		: out std_logic;
-	VCarry		: out std_logic
+	Carry		: out std_logic
 );
 end component;
 
-signal VCarry: std_logic := '0';
+signal Carry: std_logic := '0';
 signal BorderInt: std_logic := '0';
 signal BlankInt: std_logic := '0';
 signal SyncInt: std_logic := '0';
@@ -49,12 +49,12 @@ sgen: SyncGen
 		Border		=> BorderInt,
 		Blank		=> BlankInt,
 		Sync		=> SyncInt,
-		VCarry		=> VCarry
+		Carry		=> Carry
 	);
 
-process (VCarry)
+process (Clock7)
 begin
-	if (falling_edge(VCarry)) then
+	if rising_edge(Clock7) and Carry = '1' then
 		FlashCount <= FlashCount + 1;
 	end if;
 end process;

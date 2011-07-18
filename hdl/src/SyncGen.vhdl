@@ -12,7 +12,7 @@ port(
 	Blank		: out std_logic;
 	Sync		: out std_logic;
 	Interrupt	: out std_logic;
-	VCarry		: out std_logic
+	Carry		: out std_logic
 );
 end SyncGen;
 
@@ -30,7 +30,8 @@ generic (
 	SYNC_LEN	: integer
 );
 port(
-	Clock		: in  std_logic;				-- input clock (count on falling edge)
+	Clock		: in  std_logic;				-- input clock (count on rising edge)
+	Enable		: in  std_logic;				-- enable input
 	Counter		: out std_logic_vector(BITS - 1 downto 0);	-- counter output bits
 	Border		: out std_logic;
 	Blank		: out std_logic;
@@ -46,6 +47,7 @@ signal	HCarry		: std_logic;
 signal	VBorder		: std_logic;
 signal	VBlank		: std_logic;
 signal	VSync		: std_logic;
+signal	VCarry		: std_logic;
 signal	HCountInt	: std_logic_vector(8 downto 0);
 signal	VCountInt	: std_logic_vector(8 downto 0);
 
@@ -64,6 +66,7 @@ begin
 		)
 		port map (
 			Clock		=> Clock7,
+			Enable		=> '1',
 			Counter		=> HCountInt,
 			Border		=> HBorder,
 			Blank		=> HBlank,
@@ -82,7 +85,8 @@ begin
 			SYNC_LEN	=> 4
 		)
 		port map (
-			Clock		=> HCarry,
+			Clock		=> Clock7,
+			Enable		=> HCarry,
 			Counter		=> VCountInt,
 			Border		=> VBorder,
 			Blank		=> VBlank,
@@ -93,6 +97,7 @@ begin
 	Border <= HBorder or VBorder;
 	Blank <= HBlank or VBlank;
 	Sync <= HSync or VSync;
+	Carry <= HCarry and VCarry;
 	HCount <= HCountInt;
 	VCount <= VCountInt;
 	Interrupt <= '1' when VSync = '1'
