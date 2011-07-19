@@ -128,7 +128,7 @@ begin
 	pin(6 downto 2) <=
 		"00000" when Sync = '1' else
 		"10000" when Blank = '1' else
-		"1" & Highlight & Blue & Red & Green;
+		"1" & Highlight & Green & Red & Blue;
 
 	pin(1) <= '0';
 	pin(48 downto 7) <= (others => '0');
