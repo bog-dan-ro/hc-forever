@@ -32,6 +32,15 @@ signal VideoAddress	: std_logic_vector(13 downto 0);
 signal VideoDataEn	: std_logic := '0';
 signal VideoData	: std_logic_vector(7 downto 0);
 
+signal vram_ce_n	: std_logic;
+signal vram_we_n	: std_logic;
+signal vram_addr	: std_logic_vector(13 downto 0);
+signal vram_din		: std_logic_vector(7 downto 0);
+signal vram_we		: std_logic;
+
+signal jtag_din		: std_logic_vector(31 downto 0);
+signal jtag_dout	: std_logic_vector(jtag_din'range);
+
 begin
 
 	clocking: entity work.GodilClocking
@@ -61,14 +70,59 @@ begin
 			FlashClock	=> FlashCount(4)
 		);
 
+	vram: entity work.SSRAM
+		generic map (
+			AddrWidth	=> 14,
+			DataWidth	=> 8
+		)
+		port map (
+			Clk		=> Clock7,
+			CE_n		=> vram_ce_n,
+			WE_n		=> vram_we_n,
+			A		=> vram_addr,
+			DIn		=> vram_din,
+			DOut		=> VideoData
+		);
+
+	bscan: entity work.BscanUser
+		generic map (
+			DR_LEN		=> jtag_din'length
+		)
+		port map (
+			DataIn		=> jtag_din,
+			DataOut		=> jtag_dout
+		);
+
+	-- video ram & jtag
+	vram_addr <=
+		jtag_dout(21 downto 8) when vram_we = '1' else
+		VideoAddress when VideoDataEn = '1' else
+		(others => '-');
+	vram_ce_n <= not (VideoDataEn or vram_we);
+	vram_we_n <= not vram_we;
+	vram_din <= jtag_dout(7 downto 0);
+	vram_we <= jtag_dout(31);
+
+	process (Clock7)
+	begin
+		if rising_edge(Clock7) then
+			jtag_din <= (24 => sw1, 25 => sw2, others => '0');
+			if VideoDataEn = '1' and VideoAddress = jtag_dout(21 downto 8) then
+				-- sniff video ram
+				jtag_din(7 downto 0) <= VideoData;
+				jtag_din(21 downto 8) <= VideoAddress;
+				jtag_din(31) <= '1';
+			end if;
+		end if;
+	end process;
+
+	-- flash
 	process (Clock7)
 	begin
 		if rising_edge(Clock7) and Carry = '1' then
 			FlashCount <= FlashCount + 1;
 		end if;
 	end process;
-
-	VideoData <= VideoAddress(10 downto 3);
 
 	-- 5-bit passive DAC
 	pin(6 downto 2) <=
