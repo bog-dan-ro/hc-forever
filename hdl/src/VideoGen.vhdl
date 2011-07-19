@@ -49,6 +49,7 @@ begin
 			Border		=> Border,
 			Blank		=> Blank,
 			Sync		=> Sync,
+			Interrupt	=> FrameInterrupt,
 			Carry		=> FrameCarry
 		);
 
