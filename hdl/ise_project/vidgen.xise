@@ -23,22 +23,13 @@
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../src/tb_hcount.vhdl" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="PostRouteSimulation"/>
-    </file>
-    <file xil_pn:name="../src/tb_vcount.vhdl" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="PostRouteSimulation"/>
-    </file>
+    <file xil_pn:name="../src/tb_hcount.vhdl" xil_pn:type="FILE_VHDL"/>
+    <file xil_pn:name="../src/tb_vcount.vhdl" xil_pn:type="FILE_VHDL"/>
     <file xil_pn:name="../src/SyncGen.vhdl" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
-    <file xil_pn:name="../src/tb_syncgen.vhdl" xil_pn:type="FILE_VHDL">
-      <association xil_pn:name="BehavioralSimulation"/>
-      <association xil_pn:name="PostRouteSimulation"/>
-    </file>
+    <file xil_pn:name="../src/tb_syncgen.vhdl" xil_pn:type="FILE_VHDL"/>
     <file xil_pn:name="../src/top_SyncTest.vhdl" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
@@ -73,6 +64,10 @@
       <association xil_pn:name="Implementation"/>
     </file>
     <file xil_pn:name="../src/CpuArbiter.vhdl" xil_pn:type="FILE_VHDL">
+      <association xil_pn:name="BehavioralSimulation"/>
+      <association xil_pn:name="Implementation"/>
+    </file>
+    <file xil_pn:name="../src/VideoGen.vhdl" xil_pn:type="FILE_VHDL">
       <association xil_pn:name="BehavioralSimulation"/>
       <association xil_pn:name="Implementation"/>
     </file>
