@@ -20,15 +20,16 @@ architecture beh of top_fpga_vidgen is
 signal Clock7		: std_logic;
 
 signal Carry		: std_logic := '0';
-signal BlankInt		: std_logic := '0';
-signal SyncInt		: std_logic := '0';
+signal Blank		: std_logic := '0';
+signal Highlight	: std_logic := '0';
+signal Sync		: std_logic := '0';
+signal Red		: std_logic := '0';
+signal Green		: std_logic := '0';
+signal Blue		: std_logic := '0';
 signal FlashCount	: unsigned(4 downto 0) := (others => '0');
-signal RedInt		: std_logic := '0';
-signal GreenInt		: std_logic := '0';
-signal BlueInt		: std_logic := '0';
 
-signal VideoAddressInt	: std_logic_vector(13 downto 0);
-signal VideoAddressEn	: std_logic := '0';
+signal VideoAddress	: std_logic_vector(13 downto 0);
+signal VideoDataEn	: std_logic := '0';
 signal VideoData	: std_logic_vector(7 downto 0);
 
 begin
@@ -42,19 +43,19 @@ begin
 	vidgen: entity work.VideoGen
 		port map (
 			Clock7		=> Clock7,
-			VideoAddress	=> VideoAddressInt,
+			VideoAddress	=> VideoAddress,
 			VideoData	=> VideoData,
-			VideoDataEn	=> VideoAddressEn,
+			VideoDataEn	=> VideoDataEn,
 			VideoBusReq	=> open,
 			FrameInterrupt	=> open,
 			FrameCarry	=> Carry,
-			Red		=> RedInt,
-			Green		=> GreenInt,
-			Blue		=> BlueInt,
-			Highlight	=> open,
-			Blank		=> BlankInt,
-			Sync		=> SyncInt,
-			BorderRed	=> '0',
+			Red		=> Red,
+			Green		=> Green,
+			Blue		=> Blue,
+			Highlight	=> Highlight,
+			Blank		=> Blank,
+			Sync		=> Sync,
+			BorderRed	=> '1',
 			BorderGreen	=> '1',
 			BorderBlue	=> '1',
 			FlashClock	=> FlashCount(4)
@@ -66,5 +67,29 @@ begin
 			FlashCount <= FlashCount + 1;
 		end if;
 	end process;
+
+	VideoData <= VideoAddress(10 downto 3);
+
+	-- 5-bit passive DAC
+	pin(6 downto 2) <=
+		"00000" when Sync = '1' else
+		"10000" when Blank = '1' else
+		"1" & Highlight & Blue & Red & Green;
+
+	pin(1) <= '0';
+	pin(48 downto 7) <= (others => '0');
+
+	tm1 <= '0';
+	thsw <= '0';
+	tcclk <= '0';
+	tdin <= '0';
+	tmosi <= '0';
+	tvs0 <= '0';
+	tvs1 <= '0';
+
+	vs2 <= FlashCount(4);
+	cso <= '1';
+	cts <= not sw1;
+	sin <= sout xor sw1 xor sw2 xor rts xor c13 xor d13;
 
 end beh;
