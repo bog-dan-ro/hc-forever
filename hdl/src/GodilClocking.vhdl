@@ -7,7 +7,9 @@ use UNISIM.Vcomponents.ALL;
 entity GodilClocking is
 port (
 	BoardClock		: in  std_logic;	-- input board clock (49.152 MHz)
-	Clock7			: out std_logic		-- DCM clock output (7-ish MHz)
+	Clock7			: out std_logic;	-- DCM clock output (7-ish MHz)
+	Clock3p5		: in  std_logic;
+	CpuClock		: out std_logic
 );
 end GodilClocking;
 
@@ -28,6 +30,12 @@ begin
 		port map (
 			I	=> CLKDV_BUF,
 			O	=> Clock7
+		);
+
+	CPUCLK_BUFG_INST: BUFG
+		port map (
+			I	=> Clock3p5,
+			O	=> CpuClock
 		);
 
 	CLKIN_IBUFG_INST: IBUFG
