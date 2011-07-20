@@ -40,6 +40,7 @@ signal mem_din		: std_logic_vector(7 downto 0);
 signal mem_dout		: std_logic_vector(7 downto 0);
 signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
+signal rom_sel		: std_logic;
 
 signal jtag_din		: std_logic_vector(31 downto 0);
 signal jtag_we		: std_logic;
@@ -154,7 +155,8 @@ begin
 	-- video ram & jtag
 
 	mem_sel <= cpu_mreq or jtag_we;
-	mem_wr <= (cpu_mreq and cpu_wr) or jtag_we;
+	rom_sel <= not cpu_addr(15) and not cpu_addr(14);
+	mem_wr <= (cpu_mreq and cpu_wr and not rom_sel) or jtag_we;
 	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
 	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
 	cpu_din <= mem_dout; -- XXX select
