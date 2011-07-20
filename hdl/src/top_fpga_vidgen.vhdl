@@ -175,6 +175,8 @@ begin
 		if rising_edge(Clock7) then
 			if portfe_sel = '1' and cpu_wr = '1' then
 				BorderReg <= cpu_dout(2 downto 0);
+				pin(7) <= cpu_dout(3); -- MIC
+				pin(8) <= cpu_dout(4); -- EAR
 			end if;
 		end if;
 	end process;
@@ -194,7 +196,7 @@ begin
 		"1" & Highlight & Green & Red & Blue;
 
 	pin(1) <= '0';
-	pin(48 downto 7) <= (others => '0');
+	pin(48 downto 9) <= (others => '0');
 
 	tm1 <= '0';
 	thsw <= '0';
