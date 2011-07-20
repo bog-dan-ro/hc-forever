@@ -29,6 +29,7 @@ signal Red		: std_logic := '0';
 signal Green		: std_logic := '0';
 signal Blue		: std_logic := '0';
 signal FlashCount	: unsigned(4 downto 0) := (others => '0');
+signal BorderReg	: std_logic_vector(2 downto 0);
 
 signal VideoAddress	: std_logic_vector(13 downto 0);
 signal VideoDataEn	: std_logic := '0';
@@ -41,6 +42,7 @@ signal mem_dout		: std_logic_vector(7 downto 0);
 signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
 signal rom_sel		: std_logic;
+signal portfe_sel	: std_logic;
 
 signal jtag_din		: std_logic_vector(31 downto 0);
 signal jtag_we		: std_logic;
@@ -92,9 +94,9 @@ begin
 			Highlight	=> Highlight,
 			Blank		=> Blank,
 			Sync		=> Sync,
-			BorderRed	=> '1',
-			BorderGreen	=> '1',
-			BorderBlue	=> '1',
+			BorderRed	=> BorderReg(1),
+			BorderGreen	=> BorderReg(2),
+			BorderBlue	=> BorderReg(0),
 			FlashClock	=> FlashCount(4)
 		);
 
@@ -159,11 +161,23 @@ begin
 	mem_wr <= (cpu_mreq and cpu_wr and not rom_sel) or jtag_we;
 	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
 	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
-	cpu_din <= mem_dout; -- XXX select
+	cpu_din <= mem_dout;
 
 	vram_addr <= "01" & VideoAddress;
 
 	jtag_din <= (0 => sw1, 1 => sw2, 30 => cpu_busak_n, others => '0');
+
+	-- port FEh
+	portfe_sel <= cpu_iorq and not cpu_addr(0);
+
+	process (Clock7)
+	begin
+		if rising_edge(Clock7) then
+			if portfe_sel = '1' and cpu_wr = '1' then
+				BorderReg <= cpu_dout(2 downto 0);
+			end if;
+		end if;
+	end process;
 
 	-- flash
 	process (Clock7)
