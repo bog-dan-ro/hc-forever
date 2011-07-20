@@ -12,8 +12,8 @@ if len(sys.argv) > 1:
 print "# start address: 0x%04x" % addr
 print "# data: 0x%04x (%d) bytes" % (len(data), len(data))
 
-#print "register UR 32"
-#print "instruction USER1 000010 UR"
+print "register UR 32"
+print "instruction USER1 000010 UR"
 print "instruction USER1"
 print "shift ir"
 
