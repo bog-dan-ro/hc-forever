@@ -67,6 +67,7 @@ signal cpu_rd		: std_logic;
 signal cpu_wr		: std_logic;
 signal cpu_int		: std_logic;
 signal cpu_wait		: std_logic;
+signal cpu_busrq	: std_logic;
 
 begin
 
@@ -121,7 +122,7 @@ begin
 			Clock			=> Clock7,
 			DataIn			=> jtag_din,
 			DataOut(31)		=> jtag_we,
-			DataOut(30)		=> cpu_busrq_n,
+			DataOut(30)		=> cpu_busrq,
 			DataOut(29 downto 24)	=> open,
 			DataOut(23 downto 8)	=> jtag_addr,
 			DataOut(7 downto 0)	=> jtag_data
@@ -153,6 +154,7 @@ begin
 	cpu_iorq <= not cpu_iorq_n;
 	cpu_int_n <= not cpu_int;
 	cpu_wait_n <= not cpu_wait;
+	cpu_busrq_n <= not cpu_busrq;
 
 	-- video ram & jtag
 
@@ -165,7 +167,7 @@ begin
 
 	vram_addr <= "01" & VideoAddress;
 
-	jtag_din <= (0 => sw1, 1 => sw2, 30 => cpu_busak_n, others => '0');
+	jtag_din <= (0 => sw1, 1 => sw2, 3 => cpu_busak_n, others => '0');
 
 	-- port FEh
 	portfe_sel <= cpu_iorq and not cpu_addr(0);
