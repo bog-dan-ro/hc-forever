@@ -52,6 +52,8 @@ signal cpu_rd_n		: std_logic;
 signal cpu_wr_n		: std_logic;
 signal cpu_int_n	: std_logic;
 signal cpu_wait_n	: std_logic;
+signal cpu_busrq_n	: std_logic;
+signal cpu_busak_n	: std_logic;
 signal cpu_addr		: std_logic_vector(15 downto 0);
 signal cpu_din		: std_logic_vector(7 downto 0);
 signal cpu_dout		: std_logic_vector(7 downto 0);
@@ -115,7 +117,8 @@ begin
 		port map (
 			DataIn			=> jtag_din,
 			DataOut(31)		=> jtag_we,
-			DataOut(30 downto 24)	=> open,
+			DataOut(30)		=> cpu_busrq_n,
+			DataOut(29 downto 24)	=> open,
 			DataOut(23 downto 8)	=> jtag_addr,
 			DataOut(7 downto 0)	=> jtag_data
 		);
@@ -126,7 +129,7 @@ begin
 		WAIT_n => '1', --cpu_wait_n,
 		INT_n => cpu_int_n,
 		NMI_n => '1',
-		BUSRQ_n => '1',
+		BUSRQ_n => cpu_busrq_n,
 		M1_n => open,
 		MREQ_n => cpu_mreq_n,
 		IORQ_n => cpu_iorq_n,
@@ -134,7 +137,7 @@ begin
 		WR_n => cpu_wr_n,
 		RFSH_n => open,
 		HALT_n => cts,
-		BUSAK_n => open,
+		BUSAK_n => cpu_busak_n,
 		A => cpu_addr,
 		DI => cpu_din,
 		DO => cpu_dout
@@ -157,7 +160,7 @@ begin
 
 	vram_addr <= "01" & VideoAddress;
 
-	jtag_din <= (0 => sw1, 1 => sw2, others => '0');
+	jtag_din <= (0 => sw1, 1 => sw2, 30 => cpu_busak_n, others => '0');
 
 	-- flash
 	process (Clock7)
