@@ -9,6 +9,7 @@ generic (
 	DR_LEN			: integer := 8		-- data register length (bits)
 );
 port (
+	Clock			: in  std_logic;
 	DataIn			: in  std_logic_vector(DR_LEN-1 downto 0);
 	DataOut			: out std_logic_vector(DR_LEN-1 downto 0)
 );
@@ -28,6 +29,7 @@ signal jtag_update		: std_logic;
 signal jtag_tdo1		: std_logic;
 signal jtag_tdo2		: std_logic;
 signal jtag_dr			: std_logic_vector(DR_LEN-1 downto 0);
+signal DataOutBuf		: std_logic_vector(jtag_dr'range);
 
 begin
 
@@ -67,11 +69,18 @@ begin
 	process (jtag_reset, jtag_update)
 	begin
 		if jtag_reset = '1' then
-			DataOut <= (others => '0');
+			DataOutBuf <= (others => '0');
 		elsif rising_edge(jtag_update) then
 			if jtag_sel1 = '1' then
-				DataOut <= jtag_dr;
+				DataOutBuf <= jtag_dr;
 			end if;
+		end if;
+	end process;
+
+	process (Clock)
+	begin
+		if rising_edge(Clock) then
+			DataOut <= DataOutBuf;
 		end if;
 	end process;
 

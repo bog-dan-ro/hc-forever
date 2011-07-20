@@ -115,6 +115,7 @@ begin
 			DR_LEN		=> jtag_din'length
 		)
 		port map (
+			Clock			=> Clock7,
 			DataIn			=> jtag_din,
 			DataOut(31)		=> jtag_we,
 			DataOut(30)		=> cpu_busrq_n,
