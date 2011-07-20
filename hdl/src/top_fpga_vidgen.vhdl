@@ -42,8 +42,9 @@ signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
 
 signal jtag_din		: std_logic_vector(31 downto 0);
-signal jtag_dout	: std_logic_vector(jtag_din'range);
 signal jtag_we		: std_logic;
+signal jtag_addr	: std_logic_vector(15 downto 0);
+signal jtag_data	: std_logic_vector(7 downto 0);
 
 signal cpu_mreq_n	: std_logic;
 signal cpu_iorq_n	: std_logic;
@@ -112,8 +113,11 @@ begin
 			DR_LEN		=> jtag_din'length
 		)
 		port map (
-			DataIn		=> jtag_din,
-			DataOut		=> jtag_dout
+			DataIn			=> jtag_din,
+			DataOut(31)		=> jtag_we,
+			DataOut(30 downto 24)	=> open,
+			DataOut(23 downto 8)	=> jtag_addr,
+			DataOut(7 downto 0)	=> jtag_data
 		);
 
 	z80: entity work.T80s port map (
@@ -145,28 +149,15 @@ begin
 
 	-- video ram & jtag
 
-	jtag_we <= jtag_dout(31);
-
 	mem_sel <= cpu_mreq or jtag_we;
 	mem_wr <= (cpu_mreq and cpu_wr) or jtag_we;
-	mem_addr <= jtag_dout(23 downto 8) when jtag_we = '1' else cpu_addr;
-	mem_din <= jtag_dout(7 downto 0) when jtag_we = '1' else cpu_dout;
+	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
+	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
 	cpu_din <= mem_dout; -- XXX select
 
 	vram_addr <= "01" & VideoAddress;
 
-	process (Clock7)
-	begin
-		if rising_edge(Clock7) then
-			jtag_din <= (24 => sw1, 25 => sw2, others => '0');
-			if VideoDataEn = '1' and VideoAddress = jtag_dout(21 downto 8) then
-				-- sniff video ram
-				jtag_din(7 downto 0) <= VideoData;
-				jtag_din(21 downto 8) <= VideoAddress;
-				jtag_din(31) <= '1';
-			end if;
-		end if;
-	end process;
+	jtag_din <= (0 => sw1, 1 => sw2, others => '0');
 
 	-- flash
 	process (Clock7)
