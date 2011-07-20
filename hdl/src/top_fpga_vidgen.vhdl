@@ -10,7 +10,7 @@ port (
 	m49, sw1, sw2, sout, rts, c13, d13:		in  std_logic;
 	cts, cso, vs2, sin:				out std_logic;
 	tvs1, tvs0, tmosi, tdin, tcclk, tm1, thsw:	out std_logic;
-	pin:						out std_logic_vector(48 downto 1)
+	pin:						inout std_logic_vector(48 downto 1)
 );
 end top_fpga_vidgen;
 
@@ -43,6 +43,7 @@ signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
 signal rom_sel		: std_logic;
 signal portfe_sel	: std_logic;
+signal portfe_din	: std_logic_vector(7 downto 0) := (others => '1');
 
 signal jtag_din		: std_logic_vector(31 downto 0);
 signal jtag_we		: std_logic;
@@ -163,7 +164,10 @@ begin
 	mem_wr <= (cpu_mreq and cpu_wr and not rom_sel) or jtag_we;
 	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
 	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
-	cpu_din <= mem_dout;
+	cpu_din <= mem_dout when cpu_mreq = '1' else
+		portfe_din when portfe_sel = '1' else
+		VideoData when VideoDataEn = '1' else
+		x"FF";
 
 	vram_addr <= "01" & VideoAddress;
 
@@ -171,6 +175,14 @@ begin
 
 	-- port FEh
 	portfe_sel <= cpu_iorq and not cpu_addr(0);
+	portfe_din(0) <= pin(48);	-- "space" key
+	portfe_din(1) <= pin(47);	-- Z
+	portfe_din(2) <= pin(46);	-- X
+	portfe_din(3) <= pin(45);	-- C
+	portfe_din(4) <= pin(44);	-- V
+	portfe_din(5) <= pin(43);
+	portfe_din(6) <= pin(42);	-- EAR input
+	portfe_din(7) <= pin(41);
 
 	process (Clock7)
 	begin
@@ -197,8 +209,8 @@ begin
 		"10000" when Blank = '1' else
 		"1" & Highlight & Green & Red & Blue;
 
-	pin(1) <= '0';
-	pin(48 downto 9) <= (others => '0');
+	pin(1) <= 'Z';
+	pin(48 downto 9) <= (others => 'Z');
 
 	tm1 <= '0';
 	thsw <= '0';
