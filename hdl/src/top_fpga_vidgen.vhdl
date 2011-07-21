@@ -20,6 +20,8 @@ architecture beh of top_fpga_vidgen is
 signal Clock7		: std_logic;
 signal Clock3p5		: std_logic;
 signal CpuClock		: std_logic;
+signal Tick1us		: std_logic;
+signal TickCount	: unsigned(2 downto 0);
 
 signal Carry		: std_logic := '0';
 signal Blank		: std_logic := '0';
@@ -130,6 +132,17 @@ begin
 			DataOut(7 downto 0)	=> jtag_data
 		);
 
+	kbd: entity work.PS2_MatrixEncoder
+		port map (
+			Clk			=> Clock7,
+			Reset_n			=> sw2,
+			Tick1us			=> Tick1us,
+			PS2_Clk			=> pin(47),
+			PS2_Data		=> pin(48),
+			Key_Addr		=> cpu_addr(15 downto 8),
+			Key_Data		=> portfe_din(4 downto 0)
+		);
+
 	z80: entity work.T80s port map (
 		RESET_n => sw2,			-- sw2 is active low
 		CLK_n => CpuClock,
@@ -177,14 +190,9 @@ begin
 
 	-- port FEh
 	portfe_sel <= cpu_iorq and not cpu_addr(0);
-	portfe_din(0) <= pin(48);	-- "space" key
-	portfe_din(1) <= pin(47);	-- Z
-	portfe_din(2) <= pin(46);	-- X
-	portfe_din(3) <= pin(45);	-- C
-	portfe_din(4) <= pin(44);	-- V
-	portfe_din(5) <= pin(43);
-	portfe_din(6) <= pin(42);	-- EAR input
-	portfe_din(7) <= pin(41);
+	portfe_din(5) <= pin(46);	-- unused
+	portfe_din(6) <= pin(45);	-- EAR input
+	portfe_din(7) <= pin(44);	-- unused
 
 	process (Clock7)
 	begin
@@ -204,6 +212,19 @@ begin
 			FlashCount <= FlashCount + 1;
 		end if;
 	end process;
+
+	-- 1us tick
+	process (Clock7)
+	begin
+		if rising_edge(Clock7) then
+			if TickCount = "110" then
+				TickCount <= (others => '0');
+			else
+				TickCount <= TickCount + 1;
+			end if;
+		end if;
+	end process;
+	Tick1us <= '1' when TickCount = "000" else '0';
 
 	-- 5-bit passive DAC
 	pin(6 downto 2) <=
