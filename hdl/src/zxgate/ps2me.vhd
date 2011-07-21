@@ -222,6 +222,7 @@ begin
 		when x"3b" => LookUp <= "11001000"; -- j
 		when x"33" => LookUp <= "11010000"; -- h
 		when x"29" => LookUp <= "11100001"; -- Space
+		when x"14" => LookUp <= "11100010"; -- ctrl
 		when x"49" => LookUp <= "11100010"; -- .
 		when x"3a" => LookUp <= "11100100"; -- m
 		when x"31" => LookUp <= "11101000"; -- n
