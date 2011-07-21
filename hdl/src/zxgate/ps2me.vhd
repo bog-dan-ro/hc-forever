@@ -32,10 +32,13 @@ architecture rtl of PS2_MatrixEncoder is
 	signal	RX_Received		: std_logic;
 
 	signal	LookUp			: std_logic_vector(7 downto 0);
+	signal	LookUpExt		: std_logic_vector(7 downto 0);
 
 	signal	Matrix_Set		: std_logic;
-	signal	Matrix_Clear	: std_logic;
-	signal	Matrix_Wr_Addr	: unsigned(7 downto 0);
+	signal	Matrix_Clear		: std_logic;
+	signal	Matrix_Wr_Addr		: unsigned(7 downto 0);
+	signal	Matrix_Ext		: std_logic;
+	signal	Matrix_Wr_AddrExt	: unsigned(7 downto 0);
 
 	type Matrix_Image is array (natural range <>) of std_logic_vector(4 downto 0);
 	signal	Matrix			: Matrix_Image(0 to 7);
@@ -135,10 +138,13 @@ begin
 			RX_Release <= '0';
 			Matrix_Set <= '0';
 			Matrix_Clear <= '0';
+			Matrix_Ext <= '0';
 			Matrix_Wr_Addr <= (others => '0');
+			Matrix_Wr_AddrExt <= (others => '0');
 		elsif Clk'event and Clk = '1' then
 			Matrix_Set <= '0';
 			Matrix_Clear <= '0';
+			Matrix_Ext <= '0';
 
 			if RX_Received = '1' then
 				RX_Byte <= RX_Byte + 1;
@@ -156,6 +162,10 @@ begin
 					if unsigned(LookUp) /= 0 and RX_Release = '1' then
 						Matrix_Wr_Addr <= unsigned(LookUp);
 						Matrix_Clear <= '1';
+					end if;
+					if unsigned(LookUpExt) /= 0 then
+						Matrix_Wr_AddrExt <= unsigned(LookUpExt);
+						Matrix_Ext <= '1';
 					end if;
 				end if;
 			end if;
@@ -227,9 +237,20 @@ begin
 		when x"3a" => LookUp <= "11100100"; -- m
 		when x"31" => LookUp <= "11101000"; -- n
 		when x"32" => LookUp <= "11110000"; -- b
+		-- combinations (must also update LookUpExt)
+		when x"66" => LookUp <= "10000001"; -- backspace
 		when others => LookUp <= "00000000";
 		end case;
 	end process;
+
+	process (RX_ShiftReg)
+	begin
+		case RX_ShiftReg is
+		when x"66" => LookUpExt <= "00000001"; -- backspace
+		when others => LookUpExt <= "00000000";
+		end case;
+	end process;
+
 
 	process (Clk, Reset_n)
 	begin
@@ -248,6 +269,16 @@ begin
 				Matrix(to_integer(Matrix_Wr_Addr(7 downto 5))) <=
 					Matrix(to_integer(Matrix_Wr_Addr(7 downto 5))) and
 					std_logic_vector(not Matrix_Wr_Addr(4 downto 0));
+			end if;
+			if Matrix_Set = '1' and Matrix_Ext = '1' then
+				Matrix(to_integer(Matrix_Wr_AddrExt(7 downto 5))) <=
+					Matrix(to_integer(Matrix_Wr_AddrExt(7 downto 5))) or
+					std_logic_vector(Matrix_Wr_AddrExt(4 downto 0));
+			end if;
+			if Matrix_Clear = '1' and Matrix_Ext = '1' then
+				Matrix(to_integer(Matrix_Wr_AddrExt(7 downto 5))) <=
+					Matrix(to_integer(Matrix_Wr_AddrExt(7 downto 5))) and
+					std_logic_vector(not Matrix_Wr_AddrExt(4 downto 0));
 			end if;
 		end if;
 	end process;
