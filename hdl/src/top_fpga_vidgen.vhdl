@@ -42,6 +42,7 @@ signal mem_dout		: std_logic_vector(7 downto 0);
 signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
 signal rom_sel		: std_logic;
+signal ram_sel		: std_logic;
 signal portfe_sel	: std_logic;
 signal portfe_din	: std_logic_vector(7 downto 0) := (others => '1');
 
@@ -161,10 +162,11 @@ begin
 
 	mem_sel <= cpu_mreq or jtag_we;
 	rom_sel <= not cpu_addr(15) and not cpu_addr(14);
-	mem_wr <= (cpu_mreq and cpu_wr and not rom_sel) or jtag_we;
+	ram_sel <= not cpu_addr(15) and cpu_addr(14); -- XXX 16k hack
+	mem_wr <= (cpu_mreq and cpu_wr and ram_sel) or jtag_we;
 	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
 	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
-	cpu_din <= mem_dout when cpu_mreq = '1' else
+	cpu_din <= mem_dout when cpu_mreq = '1' and (rom_sel = '1' or ram_sel = '1') else
 		portfe_din when portfe_sel = '1' else
 		VideoData when VideoDataEn = '1' else
 		x"FF";
