@@ -7,7 +7,7 @@ use ieee.numeric_std.all;
 
 entity top_spiflash is
 generic (
-	BUFFER_BITS	: integer := 16 * 8
+	BUFFER_BITS	: integer := 196 * 8
 );
 port (
 	m49, sw1, sw2, sout, rts, c13, d13, tdin:	in  std_logic;
