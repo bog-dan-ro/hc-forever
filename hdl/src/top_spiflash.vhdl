@@ -26,7 +26,7 @@ signal spi_cs		: std_logic	:= '1';
 signal spi_mosi		: std_logic	:= '0';
 signal spi_clk		: std_logic	:= '0';
 
-type state_type is (IDLE, CLK_LO, CLK_HI, DONE);
+type state_type is (IDLE, START, CLK_LO, CLK_HI, DONE);
 signal spi_state	: state_type := IDLE;
 
 signal spi_start	: std_logic	:= '0';
@@ -39,6 +39,8 @@ signal jtag_cmd_start	: std_logic;
 signal jtag_cmd_reset	: std_logic;
 signal jtag_reg_dlen	: std_logic_vector(15 downto 0);
 signal jtag_reg_buf	: std_logic_vector(spi_buf'range);
+signal cmd_start_hist	: std_logic_vector(4 downto 0);
+signal start_level	: std_logic := '0';
 
 begin
 	jtag_cmd_reset	<= jtag_dout(0);
@@ -48,6 +50,7 @@ begin
 
 	jtag_din(BUFFER_BITS+24-1 downto 24) <= spi_buf;
 	jtag_din(0) <= spi_cs;
+	jtag_din(1) <= start_level;
 	jtag_din(4) <= '1' when spi_state = IDLE else '0';
 	jtag_din(5) <= '1' when spi_state = CLK_LO else '0';
 	jtag_din(6) <= '1' when spi_state = CLK_HI else '0';
@@ -59,16 +62,20 @@ begin
 	spi_fsm: process(m49)
 	begin
 		if rising_edge(m49) then
+			cmd_start_hist <= cmd_start_hist(cmd_start_hist'high-1 downto 0) & jtag_cmd_start;
 			case spi_state is
 			when IDLE =>
-				if jtag_cmd_start = '1' then
-					spi_state <= CLK_HI;
-					spi_buf <= jtag_reg_buf;
-					spi_count(18 downto 3) <= jtag_reg_dlen;
-					spi_count(2 downto 0) <= (others => '0');
-					spi_cs <= '0';
-					spi_clk <= '0';
+				if cmd_start_hist = "10000" or cmd_start_hist = "01111" then
+					start_level <= cmd_start_hist(0);
+					spi_state <= START;
 				end if;
+			when START =>
+				spi_state <= CLK_HI;
+				spi_buf <= jtag_reg_buf;
+				spi_count(18 downto 3) <= jtag_reg_dlen;
+				spi_count(2 downto 0) <= (others => '0');
+				spi_cs <= '0';
+				spi_clk <= '0';
 			when CLK_LO =>
 				spi_clk <= '1';
 				spi_state <= CLK_HI;
@@ -85,6 +92,7 @@ begin
 				end if;
 			when DONE =>
 				spi_cs <= '1';
+				spi_state <= IDLE;
 			end case;
 
 			if jtag_cmd_reset = '1' then
