@@ -26,6 +26,7 @@ signal TickCount	: unsigned(2 downto 0);
 signal Carry		: std_logic := '0';
 signal Blank		: std_logic := '0';
 signal Highlight	: std_logic := '0';
+signal HighlightPin	: std_logic := '0';
 signal Sync		: std_logic := '0';
 signal Red		: std_logic := '0';
 signal Green		: std_logic := '0';
@@ -226,11 +227,14 @@ begin
 	end process;
 	Tick1us <= '1' when TickCount = "000" else '0';
 
+	-- black is not highlighted on the Spectrum
+	HighlightPin <= Highlight and (Red or Green or Blue);
+
 	-- 5-bit passive DAC
 	pin(6 downto 2) <=
 		"00000" when Sync = '1' else
 		"10000" when Blank = '1' else
-		"1" & Highlight & Green & Red & Blue;
+		"1" & HighlightPin & Green & Red & Blue;
 
 	pin(1) <= 'Z';
 	pin(48 downto 9) <= (others => 'Z');
