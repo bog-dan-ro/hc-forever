@@ -7,9 +7,9 @@ use ieee.numeric_std.all;
 
 entity top_fpga_vidgen is
 port (
-	m49, sw1, sw2, sout, rts, c13, d13:		in  std_logic;
-	cts, cso, vs2, sin:				out std_logic;
-	tvs1, tvs0, tmosi, tdin, tcclk, tm1, thsw:	out std_logic;
+	m49, sw1, sw2, sout, rts, c13, d13, tdin:	in  std_logic;
+	cts, vs2, sin:				out std_logic;
+	tvs1, tvs0, tm1, thsw:		out std_logic;
 	pin:						inout std_logic_vector(48 downto 1)
 );
 end top_fpga_vidgen;
@@ -238,17 +238,22 @@ begin
 
 	pin(1) <= 'Z';
 	pin(48 downto 9) <= (others => 'Z');
+	--pin(48 downto 32) <= (others => 'Z');
+	--pin(30 downto 9) <= (others => 'Z');
+
 
 	tm1 <= '0';
 	thsw <= '0';
-	tcclk <= '0';
-	tdin <= '0';
-	tmosi <= '0';
+	--tcclk <= pin(29);	-- SCK
+	--tmosi <= pin(31);
+	--tmosi <= 'Z';
 	tvs0 <= '0';
 	tvs1 <= '0';
+	--pin(27) <= tdin;	-- MISO
+	--cso <= pin(25);		-- /CS
 
 	vs2 <= FlashCount(4);
-	cso <= '1';
-	sin <= sout xor sw1 xor sw2 xor rts xor c13 xor d13;
+	--sin <= sout xor sw1 xor sw2 xor rts xor c13 xor d13;
+	sin <= tdin;
 
 end beh;

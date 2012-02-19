@@ -17,15 +17,15 @@ NET rts                       LOC=P30 |IOSTANDARD = LVCMOS33 | PULLUP;
 # I/O's for uart & spi flash
 NET sin                       LOC=P43 |IOSTANDARD = LVCMOS33;
 NET cts                       LOC=P25 |IOSTANDARD = LVCMOS33;
-NET cso                       LOC=P24 |IOSTANDARD = LVCMOS33;
+# NET cso                       LOC=P24 |IOSTANDARD = LVCMOS33;
 NET vs2                       LOC=P47 |IOSTANDARD = LVCMOS33;
 
 # I/O's for test connector
 NET tvs1                      LOC=P48 |IOSTANDARD = LVCMOS33 | DRIVE=16;
 NET tvs0                      LOC=P49 |IOSTANDARD = LVCMOS33 | DRIVE=16;
-NET tmosi                     LOC=P27 |IOSTANDARD = LVCMOS33 | DRIVE=16;
 NET tdin                      LOC=P44 |IOSTANDARD = LVCMOS33 | DRIVE=16;
-NET tcclk                     LOC=P50 |IOSTANDARD = LVCMOS33 | DRIVE=16;
+# NET tmosi                     LOC=P27 |IOSTANDARD = LVCMOS33 | DRIVE=16;
+# NET tcclk                     LOC=P50 |IOSTANDARD = LVCMOS33 | DRIVE=16;
 NET tm1                       LOC=P42 |IOSTANDARD = LVCMOS33 | DRIVE=16;
 NET thsw                      LOC=P99 |IOSTANDARD = LVCMOS33 | DRIVE=16;
 
