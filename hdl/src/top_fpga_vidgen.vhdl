@@ -46,6 +46,7 @@ signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
 signal rom_sel		: std_logic;
 signal ram_sel		: std_logic;
+signal xmem_sel		: std_logic;
 signal portfe_sel	: std_logic;
 signal portfe_din	: std_logic_vector(7 downto 0) := (others => '1');
 
@@ -73,6 +74,13 @@ signal cpu_wr		: std_logic;
 signal cpu_int		: std_logic;
 signal cpu_wait		: std_logic;
 signal cpu_busrq	: std_logic;
+
+signal xmem_din		: std_logic_vector(7 downto 0);
+signal xmem_dout	: std_logic_vector(7 downto 0);
+signal xmem_addr	: std_logic_vector(16 downto 0);
+signal xmem_cs		: std_logic;
+signal xmem_we		: std_logic;
+signal xmem_oe		: std_logic;
 
 begin
 
@@ -177,15 +185,22 @@ begin
 	mem_sel <= cpu_mreq or jtag_we;
 	rom_sel <= not cpu_addr(15) and not cpu_addr(14);
 	ram_sel <= not cpu_addr(15) and cpu_addr(14); -- XXX 16k hack
+	xmem_sel <= cpu_addr(15);
 	mem_wr <= (cpu_mreq and cpu_wr and ram_sel) or jtag_we;
 	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
 	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
+	xmem_din <= cpu_dout;
+	xmem_oe <= xmem_sel and cpu_mreq and cpu_rd;
+	xmem_we <= xmem_sel and cpu_mreq and cpu_wr;
+	xmem_cs <= xmem_sel;
 	cpu_din <= mem_dout when cpu_mreq = '1' and (rom_sel = '1' or ram_sel = '1') else
+		xmem_dout when cpu_mreq = '1' and xmem_sel = '1' else
 		portfe_din when portfe_sel = '1' else
 		VideoData when VideoDataEn = '1' else
 		x"FF";
 
 	vram_addr <= "01" & VideoAddress;
+	xmem_addr <= "00" & cpu_addr(14 downto 0);
 
 	jtag_din <= (0 => sw1, 1 => sw2, 3 => cpu_busak_n, others => '0');
 
@@ -236,8 +251,49 @@ begin
 		"10000" when Blank = '1' else
 		"1" & HighlightPin & Green & Red & Blue;
 
+	-- external memory (621024)
+	pin(10) <= xmem_addr(16);
+	pin(11) <= xmem_addr(14);
+	pin(12) <= xmem_addr(12);
+	pin(13) <= xmem_addr(7);
+	pin(14) <= xmem_addr(6);
+	pin(15) <= xmem_addr(5);
+	pin(16) <= xmem_addr(4);
+	pin(17) <= xmem_addr(3);
+	pin(18) <= xmem_addr(2);
+	pin(19) <= xmem_addr(1);
+	pin(20) <= xmem_addr(0);
+	pin(31) <= xmem_addr(10);
+	pin(33) <= xmem_addr(11);
+	pin(34) <= xmem_addr(9);
+	pin(35) <= xmem_addr(8);
+	pin(36) <= xmem_addr(13);
+	pin(39) <= xmem_addr(15);
+	pin(30) <= not xmem_cs;
+	pin(32) <= not xmem_oe;
+	pin(37) <= not xmem_we;
+	xmem_dout(0) <= pin(21);
+	xmem_dout(1) <= pin(22);
+	xmem_dout(2) <= pin(23);
+	xmem_dout(3) <= pin(25);
+	xmem_dout(4) <= pin(26);
+	xmem_dout(5) <= pin(27);
+	xmem_dout(6) <= pin(28);
+	xmem_dout(7) <= pin(29);
+	pin(21) <= xmem_din(0) when xmem_we = '1' else 'Z';
+	pin(22) <= xmem_din(1) when xmem_we = '1' else 'Z';
+	pin(23) <= xmem_din(2) when xmem_we = '1' else 'Z';
+	pin(25) <= xmem_din(3) when xmem_we = '1' else 'Z';
+	pin(26) <= xmem_din(4) when xmem_we = '1' else 'Z';
+	pin(27) <= xmem_din(5) when xmem_we = '1' else 'Z';
+	pin(28) <= xmem_din(6) when xmem_we = '1' else 'Z';
+	pin(29) <= xmem_din(7) when xmem_we = '1' else 'Z';
+
 	pin(1) <= 'Z';
-	pin(48 downto 9) <= (others => 'Z');
+	pin(9) <= 'Z';
+	pin(24) <= 'Z';
+	pin(38) <= 'Z';
+	pin(48 downto 40) <= (others => 'Z');
 	--pin(48 downto 32) <= (others => 'Z');
 	--pin(30 downto 9) <= (others => 'Z');
 
