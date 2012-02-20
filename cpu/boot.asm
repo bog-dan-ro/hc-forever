@@ -67,6 +67,9 @@ puts:
 
 putchar:
 	exx
+	cp	10
+	jr	z, _newline
+
 	; hl = a * 4
 	ld	l, a
 	ld	h, 0
@@ -89,12 +92,28 @@ _putchar_byte:
 	inc	hl
 	inc	d
 	djnz	_putchar_byte
+	jr	_done
+
+_newline:
+	ld	hl, (cursor)
+	ld	a, l
+	and	0xe0
+	add	a, 0x20
+	ld	l, a
+	jr	nc, _nc
+	ld	a, h
+	add	a, 8
+	ld	h, a
+_nc:
+	ld	(cursor), hl
+
+_done:
 	exx
 	ret
 
 
 banner:
-	db "Hello world", 0
+	db "Hello", 10, "world", 0
 
 font:
 	incbin "clairsys.bin"
