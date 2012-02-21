@@ -8,8 +8,9 @@ use ieee.numeric_std.all;
 entity top_fpga_vidgen is
 port (
 	m49, sw1, sw2, sout, rts, c13, d13, tdin:	in  std_logic;
-	cts, vs2, sin:				out std_logic;
-	tvs1, tvs0, tm1, thsw:		out std_logic;
+	cts, vs2, sin:					out std_logic;
+	tvs1, tvs0, tmosi, tcclk, cso:			out std_logic;
+	tm1, thsw:					inout std_logic;
 	pin:						inout std_logic_vector(48 downto 1)
 );
 end top_fpga_vidgen;
@@ -22,6 +23,8 @@ signal Clock3p5		: std_logic;
 signal CpuClock		: std_logic;
 signal Tick1us		: std_logic;
 signal TickCount	: unsigned(2 downto 0);
+signal SysReset		: std_logic;
+signal SysReset_n	: std_logic;
 
 signal Carry		: std_logic := '0';
 signal Blank		: std_logic := '0';
@@ -82,7 +85,16 @@ signal xmem_cs		: std_logic;
 signal xmem_we		: std_logic;
 signal xmem_oe		: std_logic;
 
+signal spim_sel_data	: std_logic;
+signal spim_sel_ctrl	: std_logic;
+signal spim_wr		: std_logic;
+signal spim_dout	: std_logic_vector(7 downto 0);
+signal spim_cs		: std_logic_vector(2 downto 0);
+
 begin
+
+	SysReset_n <= sw2; -- sw2 is active low
+	SysReset <= not SysReset_n;
 
 	clocking: entity work.GodilClocking
 		port map (
@@ -144,7 +156,7 @@ begin
 	kbd: entity work.PS2_MatrixEncoder
 		port map (
 			Clk			=> Clock7,
-			Reset_n			=> sw2,
+			Reset_n			=> SysReset_n,
 			Tick1us			=> Tick1us,
 			PS2_Clk			=> pin(47),
 			PS2_Data		=> pin(48),
@@ -152,8 +164,22 @@ begin
 			Key_Data		=> portfe_din(4 downto 0)
 		);
 
+	spi_master: entity work.SpiMaster
+		port map (
+			Clock			=> Clock7,
+			Reset			=> SysReset,
+			WriteEnable		=> spim_wr,
+			ControlSelect		=> spim_sel_ctrl,
+			ChipSelect		=> spim_cs,
+			DataIn			=> cpu_dout,
+			DataOut			=> spim_dout,
+			SpiMiso			=> tdin,
+			SpiMosi			=> tmosi,
+			SpiClock		=> tcclk
+		);
+
 	z80: entity work.T80s port map (
-		RESET_n => sw2,			-- sw2 is active low
+		RESET_n => SysReset_n,
 		CLK_n => CpuClock,
 		WAIT_n => '1', --cpu_wait_n,
 		INT_n => cpu_int_n,
@@ -180,8 +206,15 @@ begin
 	cpu_wait_n <= not cpu_wait;
 	cpu_busrq_n <= not cpu_busrq;
 
-	-- video ram & jtag
+	spim_sel_ctrl <= '1' when 
+		cpu_iorq = '1' and cpu_addr(7 downto 0) = x"1F"
+		else '0';
+	spim_sel_data <= '1' when 
+		cpu_iorq = '1' and cpu_addr(7 downto 0) = x"3F"
+		else '0';
+	spim_wr <= (spim_sel_ctrl or spim_sel_data) and cpu_wr;
 
+	-- video ram & jtag
 	mem_sel <= cpu_mreq or jtag_we;
 	rom_sel <= not cpu_addr(15) and not cpu_addr(14);
 	ram_sel <= not cpu_addr(15) and cpu_addr(14); -- XXX 16k hack
@@ -196,6 +229,7 @@ begin
 	cpu_din <= mem_dout when cpu_mreq = '1' and (rom_sel = '1' or ram_sel = '1') else
 		xmem_dout when cpu_mreq = '1' and xmem_sel = '1' else
 		portfe_din when portfe_sel = '1' else
+		spim_dout when spim_sel_data = '1' else
 		VideoData when VideoDataEn = '1' else
 		x"FF";
 
@@ -297,16 +331,11 @@ begin
 	--pin(48 downto 32) <= (others => 'Z');
 	--pin(30 downto 9) <= (others => 'Z');
 
-
-	tm1 <= '0';
-	thsw <= '0';
-	--tcclk <= pin(29);	-- SCK
-	--tmosi <= pin(31);
-	--tmosi <= 'Z';
-	tvs0 <= '0';
-	tvs1 <= '0';
-	--pin(27) <= tdin;	-- MISO
-	--cso <= pin(25);		-- /CS
+	tvs0 <= not spim_cs(0);
+	tvs1 <= not spim_cs(1);
+	cso <= not spim_cs(2);
+	tm1 <= 'Z';
+	thsw <= 'Z';
 
 	vs2 <= FlashCount(4);
 	--sin <= sout xor sw1 xor sw2 xor rts xor c13 xor d13;
