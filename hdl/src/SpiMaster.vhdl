@@ -63,9 +63,9 @@ begin
 			if SpiClockReg = '1' then
 				-- falling edge
 				SpiMosiReg <= ShiftReg(7);
-				ShiftReg <= ShiftReg(6 downto 0) & SpiMiso;
 			else
 				-- rising edge
+				ShiftReg <= ShiftReg(6 downto 0) & SpiMiso;
 				BitCounter <= BitCounter + 1;
 				if BitCounter = 7 then
 					Running <= '0';
