@@ -47,8 +47,6 @@ signal mem_din		: std_logic_vector(7 downto 0);
 signal mem_dout		: std_logic_vector(7 downto 0);
 signal mem_sel		: std_logic;
 signal mem_wr		: std_logic;
-signal rom_sel		: std_logic;
-signal ram_sel		: std_logic;
 signal xmem_sel		: std_logic;
 signal portfe_sel	: std_logic;
 signal portfe_din	: std_logic_vector(7 downto 0) := (others => '1');
@@ -90,6 +88,26 @@ signal spim_sel_ctrl	: std_logic;
 signal spim_wr		: std_logic;
 signal spim_dout	: std_logic_vector(7 downto 0);
 signal spim_cs		: std_logic_vector(2 downto 0);
+
+
+type mmu_def is array (0 to 3) of std_logic_vector (5 downto 0);
+-- MMU bits:
+--   bit 5: read-only flag (1=CPU writes are ignored)
+--   bit 4: source (0 = external SRAM, 1 = FPGA BRAM)
+--   bits 3..0: source bank#  (16k each)
+signal mmu: mmu_def := (
+	0 => "11" & "0000",
+	1 => "01" & "0001",
+	2 => "00" & "0000",
+	3 => "00" & "0001"
+);
+signal mmu_current: std_logic_vector(5 downto 0);
+signal mmu_page: std_logic_vector(3 downto 0);
+signal mmu_readonly: std_logic;
+signal mmu_bram: std_logic;
+
+signal mmu_ioreg_sel: std_logic;
+signal mmu_locked: std_logic := '0';
 
 begin
 
@@ -206,6 +224,8 @@ begin
 	cpu_wait_n <= not cpu_wait;
 	cpu_busrq_n <= not cpu_busrq;
 
+
+	-- SPI master registers
 	spim_sel_ctrl <= '1' when 
 		cpu_iorq = '1' and cpu_addr(7 downto 0) = x"1F"
 		else '0';
@@ -214,29 +234,58 @@ begin
 		else '0';
 	spim_wr <= (spim_sel_ctrl or spim_sel_data) and cpu_wr;
 
-	-- video ram & jtag
-	mem_sel <= cpu_mreq or jtag_we;
-	rom_sel <= not cpu_addr(15) and not cpu_addr(14);
-	ram_sel <= not cpu_addr(15) and cpu_addr(14); -- XXX 16k hack
-	xmem_sel <= cpu_addr(15);
-	mem_wr <= (cpu_mreq and cpu_wr and ram_sel) or jtag_we;
-	mem_addr <= jtag_addr when jtag_we = '1' else cpu_addr;
-	mem_din <= jtag_data when jtag_we = '1' else cpu_dout;
-	xmem_din <= cpu_dout;
-	xmem_oe <= xmem_sel and cpu_mreq and cpu_rd;
-	xmem_we <= xmem_sel and cpu_mreq and cpu_wr;
+
+
+	-- ghetto MMU
+	mmu_current <= mmu(conv_integer(cpu_addr(15 downto 14)));
+	mmu_page	<= mmu_current(3 downto 0);
+	mmu_readonly	<= mmu_current(5);
+	mmu_bram	<= mmu_current(4);
+
+	mem_addr	<= mmu_page(1 downto 0) & cpu_addr(13 downto 0);
+	xmem_addr	<= mmu_page(2 downto 0) & cpu_addr(13 downto 0);
+	mem_din		<= cpu_dout;
+	xmem_din	<= cpu_dout;
+
+	mem_sel  <= cpu_mreq and mmu_bram;
+	xmem_sel <= cpu_mreq and not mmu_bram;
+
+	mem_wr <= mem_sel and cpu_wr and (not mmu_readonly);
+
 	xmem_cs <= xmem_sel;
-	cpu_din <= mem_dout when cpu_mreq = '1' and (rom_sel = '1' or ram_sel = '1') else
-		xmem_dout when cpu_mreq = '1' and xmem_sel = '1' else
+	xmem_oe <= xmem_sel and cpu_rd;
+	xmem_we <= xmem_sel and cpu_wr and (not mmu_readonly);
+
+	cpu_din <=
+		mem_dout when mem_sel = '1' else
+		xmem_dout when xmem_sel = '1' else
 		portfe_din when portfe_sel = '1' else
 		spim_dout when spim_sel_data = '1' else
 		VideoData when VideoDataEn = '1' else
 		x"FF";
 
 	vram_addr <= "01" & VideoAddress;
-	xmem_addr <= "00" & cpu_addr(14 downto 0);
 
 	jtag_din <= (0 => sw1, 1 => sw2, 3 => cpu_busak_n, others => '0');
+
+	-- MMU config register
+	mmu_ioreg_sel	<= '1' when cpu_iorq = '1' and cpu_addr = x"42FD" else '0';
+	process (Clock7, SysReset)
+	begin
+		if rising_edge(Clock7) then
+			if mmu_ioreg_sel = '1' and cpu_wr = '1' and mmu_locked = '0' then
+				mmu(conv_integer(cpu_dout(7 downto 6))) <= cpu_dout(5 downto 0);
+			end if;
+			if mmu_ioreg_sel = '1' and cpu_rd = '1' then
+				mmu_locked <= '1';
+			end if;
+		end if;
+		if SysReset = '1' then
+			mmu_locked <= '0';
+			-- TODO: reset the actual MMU config
+		end if;
+	end process;
+
 
 	-- port FEh
 	portfe_sel <= cpu_iorq and not cpu_addr(0);
