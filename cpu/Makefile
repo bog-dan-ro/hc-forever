@@ -1,4 +1,4 @@
-ASMS	= $(wildcard *.asm)
+ASMS	= $(patsubst %.inc.asm,,$(wildcard *.asm))
 TAPS	= $(ASMS:.asm=.tap)
 
 all:	$(TAPS)
