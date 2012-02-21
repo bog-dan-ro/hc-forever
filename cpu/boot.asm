@@ -25,7 +25,7 @@ main proc
 	ldir
 ; set attributes (black on white)
 	ld	bc, 512
-	ld	a, 0x38
+	ld	a, 0x78
 	ld	(hl), a
 	ldir
 
@@ -113,7 +113,12 @@ _done:
 
 
 banner:
-	db "Hello", 10, "world", 0
+	db "HC-Forever (rev B)", 10
+	db "Copyright ", 127, " 2005-2012 Alex Badea <vamposdecampos@gmail.com>"
+	db 10, 10
+	db "Bootloader "
+	incbin "version.gen.txt"
+	db 0
 
 font:
 	incbin "clairsys.bin"
