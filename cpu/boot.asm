@@ -44,9 +44,6 @@ main proc
 	ld	bc, mask_rom_end - mask_rom
 	ldir
 
-	ld	a, 7
-	out	(0xfe), a
-
 ; clear screen
 	ld	hl, screen
 	ld	(cursor), hl
@@ -80,6 +77,25 @@ _rgbfill:
 ; write a banner
 	ld	de, banner
 	call	puts
+
+; beep
+	ld	bc, 200
+	ld	l, 0x07
+_beep:
+	ld	a, l
+	out	(0xfe), a
+	xor	0x10
+	ld	l, a
+	push	bc
+	ld	b, 100
+_delay:
+	djnz	_delay
+	pop	bc
+	dec	bc
+	ld	a, b
+	or	c
+	jr	nz, _beep
+
 
 ; read key
 menu:
