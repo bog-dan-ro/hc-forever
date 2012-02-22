@@ -64,6 +64,8 @@ signal cpu_int_n	: std_logic;
 signal cpu_wait_n	: std_logic;
 signal cpu_busrq_n	: std_logic;
 signal cpu_busak_n	: std_logic;
+signal cpu_m1_n		: std_logic;
+signal cpu_rfsh_n	: std_logic;
 signal cpu_addr		: std_logic_vector(15 downto 0);
 signal cpu_din		: std_logic_vector(7 downto 0);
 signal cpu_dout		: std_logic_vector(7 downto 0);
@@ -75,6 +77,8 @@ signal cpu_wr		: std_logic;
 signal cpu_int		: std_logic;
 signal cpu_wait		: std_logic;
 signal cpu_busrq	: std_logic;
+signal cpu_m1		: std_logic;
+signal cpu_rfsh		: std_logic;
 
 signal xmem_din		: std_logic_vector(7 downto 0);
 signal xmem_dout	: std_logic_vector(7 downto 0);
@@ -203,12 +207,12 @@ begin
 		INT_n => cpu_int_n,
 		NMI_n => '1',
 		BUSRQ_n => cpu_busrq_n,
-		M1_n => open,
+		M1_n => cpu_m1_n,
 		MREQ_n => cpu_mreq_n,
 		IORQ_n => cpu_iorq_n,
 		RD_n => cpu_rd_n,
 		WR_n => cpu_wr_n,
-		RFSH_n => open,
+		RFSH_n => cpu_rfsh_n,
 		HALT_n => cts,
 		BUSAK_n => cpu_busak_n,
 		A => cpu_addr,
@@ -220,6 +224,8 @@ begin
 	cpu_wr <= not cpu_wr_n;
 	cpu_mreq <= not cpu_mreq_n;
 	cpu_iorq <= not cpu_iorq_n;
+	cpu_m1 <= not cpu_m1_n;
+	cpu_rfsh <= not cpu_rfsh_n;
 	cpu_int_n <= not cpu_int;
 	cpu_wait_n <= not cpu_wait;
 	cpu_busrq_n <= not cpu_busrq;
