@@ -10,10 +10,31 @@ cursor		equ	0x5b00
 key		equ	0x5b02
 stack		equ	0x5c00
 
+; mmu stuff
+ram_pages	equ	0x8000
+page_port	equ	0x42fd
+
+; page port bits
+PAGEDST_BANK0	equ	0x40
+PAGEDST_BANK1	equ	0x50
+PAGEDST_BANK2	equ	0x60
+PAGEDST_BANK3	equ	0x70
+PAGE_READONLY	equ	0x20
+PAGESRC_FPGA	equ	0x10
+PAGESRC_XRAM	equ	0
+PAGESRC_BITS	equ	0x0f
+
 main proc
 
 	di
 	ld	sp, stack
+
+; copy "mask rom" to a safe area (part of it is in the video memory)
+	call	page_in_xram
+	ld	hl, mask_rom
+	ld	de, ram_pages
+	ld	bc, mask_rom_end - mask_rom
+	ldir
 
 ; clear screen
 	ld	hl, screen
@@ -74,10 +95,10 @@ _wait_release:
 boot_maskrom:
 	ld	de, str_maskrom
 	call	puts
-	; TODO
 	ld	a, 3
 	out	(0xfe), a
-	halt
+	; ROM image was already copied at ram_pages
+	jr	boot
 
 boot_spiflash:
 	ld	de, str_spiflash
@@ -87,6 +108,37 @@ boot_spiflash:
 	out	(0xfe), a
 	halt
 
+
+; page lower 32K of external SRAM at 0x8000
+page_in_xram:
+	ld	bc, page_port
+	ld	a, PAGEDST_BANK2 | PAGESRC_XRAM | 0
+	out	(c), a
+	ld	a, PAGEDST_BANK3 | PAGESRC_XRAM | 1
+	out	(c), a
+	ret
+
+; copy the trampoline routine somewhere in bank 1, and jump to it
+boot:
+	ld	hl, boot_trampoline
+	ld	de, stack
+	ld	bc, boot_trampoline_end - boot_trampoline
+	ldir
+	jp	stack
+
+; configure paging for runtime, and jump to ROM
+boot_trampoline:
+	ld	bc, page_port
+	ld	a, PAGEDST_BANK0 | PAGE_READONLY | PAGESRC_XRAM | 0
+	out	(c), a
+	;ld	a, PAGEDST_BANK1 | PAGESRC_FPGA | 1
+	;out	(c), a
+	ld	a, PAGEDST_BANK2 | PAGESRC_XRAM | 2
+	out	(c), a
+	ld	a, PAGEDST_BANK3 | PAGESRC_XRAM | 3
+	out	(c), a
+	jp	0
+boot_trampoline_end:
 
 include print_func.inc.asm
 
@@ -102,6 +154,10 @@ banner:
 
 str_maskrom:	db "mask ROM... ", 0
 str_spiflash:	db "SPI flash... ", 0
+
+mask_rom:
+	incbin "48.rom"
+mask_rom_end:
 
 endp
 end main
