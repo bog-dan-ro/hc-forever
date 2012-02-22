@@ -39,6 +39,10 @@ main proc
 	ld	de, ram_pages
 	ld	bc, mask_rom_end - mask_rom
 	ldir
+	; duplicate for the IF1 slot (avoid crashes)
+	ld	hl, mask_rom
+	ld	bc, mask_rom_end - mask_rom
+	ldir
 
 	ld	a, 7
 	out	(0xfe), a
