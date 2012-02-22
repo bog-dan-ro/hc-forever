@@ -94,7 +94,7 @@ signal spim_dout	: std_logic_vector(7 downto 0);
 signal spim_cs		: std_logic_vector(2 downto 0);
 
 
-type mmu_def is array (0 to 3) of std_logic_vector (5 downto 0);
+type mmu_def is array (0 to 4) of std_logic_vector (5 downto 0);
 -- MMU bits:
 --   bit 5: read-only flag (1=CPU writes are ignored)
 --   bit 4: source (0 = external SRAM, 1 = FPGA BRAM)
@@ -102,13 +102,17 @@ type mmu_def is array (0 to 3) of std_logic_vector (5 downto 0);
 signal mmu: mmu_def := (
 	0 => "11" & "0000",
 	1 => "01" & "0001",
-	2 => "00" & "0000",
-	3 => "00" & "0001"
+	2 => "00" & "0010",
+	3 => "00" & "0011",
+	-- special slot for IF1 paging
+	4 => "00" & "0001"
 );
 signal mmu_current: std_logic_vector(5 downto 0);
 signal mmu_page: std_logic_vector(3 downto 0);
 signal mmu_readonly: std_logic;
 signal mmu_bram: std_logic;
+signal if1_paged_next: std_logic := '0';
+signal if1_paged: std_logic := '0';
 
 signal mmu_ioreg_sel: std_logic;
 signal mmu_locked: std_logic := '0';
@@ -243,7 +247,9 @@ begin
 
 
 	-- ghetto MMU
-	mmu_current <= mmu(conv_integer(cpu_addr(15 downto 14)));
+	mmu_current <= mmu(4)
+		when if1_paged = '1' and cpu_addr(15 downto 14) = "00"
+		else mmu(conv_integer(cpu_addr(15 downto 14)));
 	mmu_page	<= mmu_current(3 downto 0);
 	mmu_readonly	<= mmu_current(5);
 	mmu_bram	<= mmu_current(4);
@@ -285,8 +291,21 @@ begin
 			if mmu_ioreg_sel = '1' and cpu_rd = '1' then
 				mmu_locked <= '1';
 			end if;
+
+			if cpu_m1 = '1' and cpu_mreq = '1' then
+				if cpu_addr = x"0008" or cpu_addr = x"1708" then
+					if1_paged_next <= '1';
+				elsif cpu_addr = x"0700" then
+					if1_paged_next <= '0';
+				end if;
+			end if;
+			if cpu_rfsh = '1' and cpu_mreq = '1' then
+				if1_paged <= if1_paged_next;
+			end if;
 		end if;
 		if SysReset = '1' then
+			if1_paged <= '0';
+			if1_paged_next <= '0';
 			mmu_locked <= '0';
 			-- TODO: reset the actual MMU config
 		end if;
@@ -394,6 +413,7 @@ begin
 
 	vs2 <= FlashCount(4);
 	--sin <= sout xor sw1 xor sw2 xor rts xor c13 xor d13;
-	sin <= tdin;
+	--sin <= tdin;
+	sin <= if1_paged;
 
 end beh;
