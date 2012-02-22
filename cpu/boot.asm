@@ -1,4 +1,4 @@
-org 0x6000
+org ORIGIN
 
 screen		equ	0x4000
 pixels_len	equ	6144
