@@ -29,10 +29,19 @@ main proc
 	di
 	ld	sp, stack
 
-; copy "mask rom" to a safe area (part of it is in the video memory)
+; set up paging
 	ld	a, 1
 	out	(0xfe), a
 	call	page_in_xram
+
+; check if we've already copied the mask rom
+; (this happens after a warm reset, i.e. every time except
+; first power-up)
+	ld	a, (copy_done_flag)
+	cp	1
+	jr	z, _copy_done
+
+; copy "mask rom" to a safe area (part of it is in the video memory)
 	ld	a, 2
 	out	(0xfe), a
 	ld	hl, mask_rom
@@ -43,6 +52,10 @@ main proc
 	ld	hl, mask_rom
 	ld	bc, mask_rom_end - mask_rom
 	ldir
+
+	ld	a, 1
+	ld	(copy_done_flag), a
+_copy_done:
 
 ; clear screen
 	ld	hl, screen
@@ -182,6 +195,8 @@ banner:
 
 str_maskrom:	db "mask ROM... ", 0
 str_spiflash:	db "SPI flash... ", 0
+
+copy_done_flag:	db 0
 
 mask_rom:
 	incbin "48.rom"
