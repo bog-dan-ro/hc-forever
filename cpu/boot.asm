@@ -126,9 +126,19 @@ _wait_release:
 	jr	nz, _wait_release
 
 	ld	a, (key)	; can be 1, 2, 4, 8, 16
-	cp	1
+	cp	16
 	jr	z, boot_maskrom
+	cp	1
+	ld	h, 0x00
+	jr	z, boot_spiflash
 	cp	2
+	ld	h, 0x40
+	jr	z, boot_spiflash
+	cp	4
+	ld	h, 0x80
+	jr	z, boot_spiflash
+	cp	8
+	ld	h, 0xc0
 	jr	z, boot_spiflash
 	jr	menu
 
@@ -189,8 +199,8 @@ banner:
 	db "Bootloader "
 	incbin "version.gen.txt"
 	db "Choose image:", 10
-	db "  [1] mask ROM", 10
-	db "  [2] SPI flash", 10
+	db "  1..4 - SPI flash", 10
+	db "  5    - mask ROM", 10
 	db 0
 
 str_maskrom:	db "mask ROM... ", 0
