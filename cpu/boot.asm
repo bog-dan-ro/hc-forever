@@ -183,7 +183,7 @@ boot_spiflash:
 	out	(PORT_SPI_DATA), a
 	xor	a
 	out	(PORT_SPI_DATA), a
-	ld	bc, 0x4000
+	ld	bc, 0x8000
 	ld	de, ram_pages
 _read_loop:
 	out	(PORT_SPI_DATA), a
