@@ -30,11 +30,18 @@ main proc
 	ld	sp, stack
 
 ; copy "mask rom" to a safe area (part of it is in the video memory)
+	ld	a, 1
+	out	(0xfe), a
 	call	page_in_xram
+	ld	a, 2
+	out	(0xfe), a
 	ld	hl, mask_rom
 	ld	de, ram_pages
 	ld	bc, mask_rom_end - mask_rom
 	ldir
+
+	ld	a, 7
+	out	(0xfe), a
 
 ; clear screen
 	ld	hl, screen
