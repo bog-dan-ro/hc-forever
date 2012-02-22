@@ -24,10 +24,28 @@ PAGESRC_FPGA	equ	0x10
 PAGESRC_XRAM	equ	0
 PAGESRC_BITS	equ	0x0f
 
+; SPI
+SPI_READ	equ	0x03
+PORT_SPI_SELECT	equ	0x1f
+PORT_SPI_DATA	equ	0x3f
+flash_page	equ	0x3f			; bits 16..23 of the address
+
+assert_cs macro
+	ld	a, 3				; on-board SPI flash chip (m25p32)
+	out	(PORT_SPI_SELECT), a
+endm
+
+release_cs macro
+	xor	a
+	out	(PORT_SPI_SELECT), a
+endm
+
 main proc
 
 	di
 	ld	sp, stack
+
+	release_cs
 
 ; set up paging
 	ld	a, 1
@@ -153,10 +171,34 @@ boot_maskrom:
 boot_spiflash:
 	ld	de, str_spiflash
 	call	puts
-	; TODO
 	ld	a, 4
 	out	(0xfe), a
-	halt
+
+	assert_cs
+	ld	a, SPI_READ
+	out	(PORT_SPI_DATA), a
+	ld	a, flash_page
+	out	(PORT_SPI_DATA), a
+	ld	a, h			; bank
+	out	(PORT_SPI_DATA), a
+	xor	a
+	out	(PORT_SPI_DATA), a
+	ld	bc, 0x4000
+	ld	de, 0
+_read_loop:
+	out	(PORT_SPI_DATA), a
+	in	a, (PORT_SPI_DATA)
+	ld	(de), a
+	inc	de
+	dec	bc
+	ld	a, b
+	or	c
+	jr	nz, _read_loop
+	release_cs
+
+	ld	de, str_done
+	call	puts
+	jr	boot
 
 
 ; page lower 32K of external SRAM at 0x8000
@@ -178,6 +220,8 @@ boot:
 
 ; configure paging for runtime, and jump to ROM
 boot_trampoline:
+	ld	a, 6
+	out	(0xfe), a
 	ld	bc, page_port
 	ld	a, PAGEDST_BANK0 | PAGE_READONLY | PAGESRC_XRAM | 0
 	out	(c), a
@@ -205,6 +249,7 @@ banner:
 
 str_maskrom:	db "mask ROM... ", 0
 str_spiflash:	db "SPI flash... ", 0
+str_done:	db "done", 0
 
 copy_done_flag:	db 0
 
