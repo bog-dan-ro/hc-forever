@@ -148,8 +148,9 @@ banner:
 	db 10, 10
 	db "Bootloader "
 	incbin "version.gen.txt"
-	db 10
-	db "Boot:  1=mask ROM  2=SPI flash", 10
+	db "Choose image:", 10
+	db "  [1] mask ROM", 10
+	db "  [2] SPI flash", 10
 	db 0
 
 str_maskrom:	db "mask ROM... ", 0
