@@ -373,6 +373,11 @@ begin
 		"10000" when Blank = '1' else
 		"1" & HighlightPin & Green & Red & Blue;
 
+	-- per-color highlight outputs (might be useful for SCART RGB)
+	pin(43) <= HighlightPin and not Sync and not Blank and Green;
+	pin(42) <= HighlightPin and not Sync and not Blank and Red;
+	pin(41) <= HighlightPin and not Sync and not Blank and Blue;
+
 	-- external memory (621024)
 	pin(10) <= xmem_addr(16);
 	pin(11) <= xmem_addr(14);
@@ -415,7 +420,7 @@ begin
 	pin(9) <= 'Z';
 	pin(24) <= 'Z';
 	pin(38) <= 'Z';
-	pin(48 downto 40) <= (others => 'Z');
+	pin(40) <= 'Z';
 	--pin(48 downto 32) <= (others => 'Z');
 	--pin(30 downto 9) <= (others => 'Z');
 
