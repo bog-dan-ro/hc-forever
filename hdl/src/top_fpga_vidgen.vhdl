@@ -113,9 +113,13 @@ signal mmu_readonly: std_logic;
 signal mmu_bram: std_logic;
 signal if1_paged_next: std_logic := '0';
 signal if1_paged: std_logic := '0';
+signal if1_enabled: std_logic := '0';
 
 signal mmu_ioreg_sel: std_logic;
 signal mmu_locked: std_logic := '0';
+
+signal hacks_ioreg_sel: std_logic;
+signal hacks_dout: std_logic_vector(7 downto 0) := (others => '0');
 
 begin
 
@@ -248,7 +252,7 @@ begin
 
 	-- ghetto MMU
 	mmu_current <= mmu(4)
-		when if1_paged = '1' and cpu_addr(15 downto 14) = "00"
+		when if1_enabled = '1' and if1_paged = '1' and cpu_addr(15 downto 14) = "00"
 		else mmu(conv_integer(cpu_addr(15 downto 14)));
 	mmu_page	<= mmu_current(3 downto 0);
 	mmu_readonly	<= mmu_current(5);
@@ -273,6 +277,7 @@ begin
 		xmem_dout when xmem_sel = '1' else
 		portfe_din when portfe_sel = '1' else
 		spim_dout when spim_sel_data = '1' else
+		hacks_dout when hacks_ioreg_sel = '1' else
 		VideoData when VideoDataEn = '1' else
 		x"FF";
 
@@ -280,8 +285,12 @@ begin
 
 	jtag_din <= (0 => sw1, 1 => sw2, 3 => cpu_busak_n, others => '0');
 
+	hacks_dout(0) <= if1_enabled;
+	hacks_dout(1) <= mmu_locked;
+
 	-- MMU config register
 	mmu_ioreg_sel	<= '1' when cpu_iorq = '1' and cpu_addr = x"42FD" else '0';
+	hacks_ioreg_sel	<= '1' when cpu_iorq = '1' and cpu_addr = x"43FD" else '0';
 	process (Clock7, SysReset)
 	begin
 		if rising_edge(Clock7) then
@@ -290,6 +299,11 @@ begin
 			end if;
 			if mmu_ioreg_sel = '1' and cpu_rd = '1' then
 				mmu_locked <= '1';
+			end if;
+
+			if hacks_ioreg_sel = '1' and cpu_wr = '1' then
+				if1_enabled <= cpu_dout(0);
+				mmu_locked <= cpu_dout(1);
 			end if;
 
 			if cpu_m1 = '1' and cpu_mreq = '1' then
