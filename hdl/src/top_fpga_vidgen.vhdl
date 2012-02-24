@@ -34,6 +34,7 @@ signal Sync		: std_logic := '0';
 signal Red		: std_logic := '0';
 signal Green		: std_logic := '0';
 signal Blue		: std_logic := '0';
+signal VideoActive	: std_logic := '0';
 signal FlashCount	: unsigned(4 downto 0) := (others => '0');
 signal BorderReg	: std_logic_vector(2 downto 0);
 
@@ -367,16 +368,20 @@ begin
 	-- black is not highlighted on the Spectrum
 	HighlightPin <= Highlight and (Red or Green or Blue);
 
-	-- 5-bit passive DAC
+	-- 5-bit passive DAC (PAL-ish CVBS)
 	pin(6 downto 2) <=
 		"00000" when Sync = '1' else
 		"10000" when Blank = '1' else
 		"1" & HighlightPin & Green & Red & Blue;
 
-	-- per-color highlight outputs (might be useful for SCART RGB)
-	pin(43) <= HighlightPin and not Sync and not Blank and Green;
-	pin(42) <= HighlightPin and not Sync and not Blank and Red;
-	pin(41) <= HighlightPin and not Sync and not Blank and Blue;
+
+	VideoActive <= not Sync and not Blank;
+	pin(43) <= Green and VideoActive and HighlightPin;
+	pin(42) <= Green and VideoActive;
+	pin(41) <= Red and VideoActive and HighlightPin;
+	pin(40) <= Red and VideoActive;
+	pin(38) <= Blue and VideoActive and HighlightPin;
+	pin(9)  <= Blue and VideoActive;
 
 	-- external memory (621024)
 	pin(10) <= xmem_addr(16);
@@ -417,10 +422,7 @@ begin
 	pin(29) <= xmem_din(7) when xmem_we = '1' else 'Z';
 
 	pin(1) <= 'Z';
-	pin(9) <= 'Z';
 	pin(24) <= 'Z';
-	pin(38) <= 'Z';
-	pin(40) <= 'Z';
 	--pin(48 downto 32) <= (others => 'Z');
 	--pin(30 downto 9) <= (others => 'Z');
 
