@@ -38,7 +38,7 @@ NET pin<5>                    LOC=P18 |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE
 NET pin<6>                    LOC=P17 |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
 NET pin<7>                    LOC=P94 |IOSTANDARD = LVCMOS33 | PULLUP;
 NET pin<8>                    LOC=P22 |IOSTANDARD = LVCMOS33 | PULLUP;
-NET pin<9>                    LOC=P23 |IOSTANDARD = LVCMOS33 | PULLUP;
+NET pin<9>                    LOC=P23 |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
 NET pin<10>                   LOC=P33 |IOSTANDARD = LVCMOS33 | PULLUP;
 NET pin<11>                   LOC=P32 |IOSTANDARD = LVCMOS33 | PULLUP;
 NET pin<12>                   LOC=P34 |IOSTANDARD = LVCMOS33 | PULLUP;
@@ -61,12 +61,12 @@ NET pin<47>                   LOC=P12 |IOSTANDARD = LVCMOS33 | PULLUP;
 NET pin<46>                   LOC=P11 |IOSTANDARD = LVCMOS33 | PULLUP;
 NET pin<45>                   LOC=P10 |IOSTANDARD = LVCMOS33 | PULLUP;
 NET pin<44>                   LOC=P9  |IOSTANDARD = LVCMOS33 | PULLUP;
-NET pin<43>                   LOC=P90 |IOSTANDARD = LVCMOS33 | PULLUP;
-NET pin<42>                   LOC=P5  |IOSTANDARD = LVCMOS33 | PULLUP;
-NET pin<41>                   LOC=P4  |IOSTANDARD = LVCMOS33 | PULLUP;
-NET pin<40>                   LOC=P2  |IOSTANDARD = LVCMOS33 | PULLUP;
+NET pin<43>                   LOC=P90 |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
+NET pin<42>                   LOC=P5  |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
+NET pin<41>                   LOC=P4  |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
+NET pin<40>                   LOC=P2  |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
 NET pin<39>                   LOC=P3  |IOSTANDARD = LVCMOS33 | PULLUP;
-NET pin<38>                   LOC=P98 |IOSTANDARD = LVCMOS33 | PULLUP;
+NET pin<38>                   LOC=P98 |IOSTANDARD = LVCMOS33 | SLEW=FAST | DRIVE=16;
 NET pin<37>                   LOC=P92 |IOSTANDARD = LVCMOS33 | PULLUP;
 
 NET pin<36>                   LOC=P85 |IOSTANDARD = LVCMOS33 | PULLUP;
