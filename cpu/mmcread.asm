@@ -10,6 +10,8 @@ MMC_READ_SINGLE_BLOCK		equ	0x51
 
 ; Spectrum ROM routines
 po_msg		equ	0x0c0a
+; Spectrum Basic system variables
+SCR_CT		equ	23962
 
 WREN		equ	0x06
 WRDI		equ	0x04
@@ -149,6 +151,9 @@ do_flash:
 	call	po_hex
 	ld	a, l
 	call	po_hex
+
+	ld	a, 0xff
+	ld	(SCR_CT), a
 
 	ld	a, 13
 	rst	0x10
