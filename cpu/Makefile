@@ -17,5 +17,8 @@ boot.*: version.gen.txt
 %.tap:	%.asm
 	pasmo -E ORIGIN=0x6000 --alocal --tapbas $< $@
 
+%.tzx:	%.asm
+	pasmo -E ORIGIN=0x6000 --alocal --tzxbas $< $@
+
 %.bin:	%.asm
 	pasmo -E ORIGIN=0 --alocal --bin $< $@
