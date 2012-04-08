@@ -6,18 +6,21 @@ LDFLAGS	= -mz80 --out-fmt-ihx
 MAKEBIN	= makebin
 ROMSIZE	= 16384
 
-OBJS	=
+OBJS	= font.gen.o
 
 all:	cboot.bin
 
 clean:
 	rm -f *.o *.ihx *.map *.lst *.lnk *.sym *.bin
 
+font.gen.c: ../clairsys.bin
+	./bin2c.py font_data < $< > $@
+
 %.bin: %.ihx
 	$(MAKEBIN) -s $(ROMSIZE) < $< > $@
 
 %.ihx: %.o $(OBJS)
-	$(LD) $(LDFLAGS) $<
+	$(LD) $(LDFLAGS) $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
