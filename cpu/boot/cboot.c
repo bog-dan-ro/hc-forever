@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -77,7 +78,7 @@ static void screen_advance(void)
 	}
 }
 
-static void screen_putc(char c)
+void putchar(char c)
 {
 	switch (c) {
 	case '\n':
@@ -90,29 +91,12 @@ static void screen_putc(char c)
 	screen_advance();
 }
 
-static void screen_puts(const char *s)
-{
-	while (*s)
-		screen_putc(*s++);
-}
-
 int main(void)
 {
 	screen_set_attr(COLOR_BLACK, COLOR_WHITE, 0, 0);
 	screen_clear();
-	screen_puts("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-		"Vestibulum sit amet nibh in lectus pellentesque pellentesque id quis urna. "
-		"Quisque ipsum mi, vehicula vel euismod a, varius et purus. "
-		"Sed lobortis, nibh ac feugiat consequat, mi libero egestas nibh, et malesuada orci arcu et lorem. "
-		"Nunc non gravida augue. Morbi a pellentesque nulla. "
-		"Praesent quis est leo, sed convallis justo. "
-		"Suspendisse sed justo eu orci bibendum pharetra. "
-		"Aliquam elementum massa quis justo malesuada sit amet pellentesque lectus vestibulum. "
-		"Maecenas eu ligula in ligula consequat dapibus eget id orci. "
-		"Nam dignissim sollicitudin volutpat. "
-		"Vivamus felis ante, molestie eget consequat nec, hendrerit non augue. "
-		"Pellentesque imperdiet tincidunt elit. ");
-	screen_puts("There are more things in Heaven and Earth, Horatio, than are dreamt of in your philosophy.");
+	printf("HC-Forever (rev B)\n"
+		"Copyright \x7f 2005-2012 Alex Badea <vamposdecampos@gmail.com>\n\n");
 
 	while (1) {
 		port_fe = 0;
