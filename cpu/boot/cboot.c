@@ -79,7 +79,14 @@ static void screen_advance(void)
 
 static void screen_putc(char c)
 {
-	screen_print_char(c);
+	switch (c) {
+	case '\n':
+		screen.col = 31;
+		break;
+	default:
+		screen_print_char(c);
+		break;
+	}
 	screen_advance();
 }
 
