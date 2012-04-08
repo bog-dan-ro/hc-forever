@@ -52,7 +52,7 @@ static void screen_print_char(char c)
 {
 	unsigned char *glyph;
 	unsigned char *dp;
-	int k;
+	unsigned char k;
 
 	glyph = &font_data[8 * (c - 32)];
 	dp = &screen_data[2048 * (screen.row / 8) + (screen.row % 8) * 32 + screen.col];
