@@ -28,13 +28,14 @@ enum color {
 static struct screen screen;
 static volatile __sfr __at 0xfe port_fe;
 static volatile __at PIXELS_ADDR uint8_t screen_data[PIXELS_SIZE];
+static volatile __at ATTRIB_ADDR uint8_t screen_attr[ATTRIB_SIZE];
 
 extern unsigned char font_data[];
 
 static inline void screen_set_attr(unsigned fgcol, unsigned bgcol,
 	unsigned bright, unsigned flash)
 {
-	screen.attr = (fgcol & 0x7) | ((bgcol & 0x07) << 3);
+	screen.attr = (fgcol & 0x7) | ((bgcol & 0x0f) << 3);
 	/* not yet used due to optimizer error */
 	(void) bright;
 	(void) flash;
@@ -60,6 +61,7 @@ static void screen_print_char(char c)
 		dp += 0x100;
 		glyph++;
 	}
+	screen_attr[screen.row * 32 + screen.col] = screen.attr;
 }
 
 static void screen_scroll(void)
