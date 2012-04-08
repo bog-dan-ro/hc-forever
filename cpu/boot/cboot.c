@@ -41,6 +41,16 @@ static inline void screen_set_attr(unsigned fgcol, unsigned bgcol,
 	(void) flash;
 }
 
+static void screen_set_fgcol(unsigned fgcol)
+{
+	screen.attr = (screen.attr & ~0x07) | (fgcol & 0x7);
+}
+
+static void screen_set_bgcol(unsigned bgcol)
+{
+	screen.attr = (screen.attr & (~0x0f << 3)) | ((bgcol & 0xf) << 3);
+}
+
 static void screen_clear(void)
 {
 	memset(ATTRIB_ADDR, screen.attr, ATTRIB_SIZE);
