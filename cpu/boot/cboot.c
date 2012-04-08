@@ -76,7 +76,23 @@ static void screen_print_char(char c)
 
 static void screen_scroll(void)
 {
-	/* TODO */
+	unsigned char third, k;
+
+	for (third = 0; third < 3; third++) {
+		for (k = 0; k < 8; k++) {
+			memmove(screen_data + 2048 * (third - 1) + 32 * 7 + 256 * k,
+				screen_data + 2048 * third + 256 * k,
+				32);
+			memmove(screen_data + 2048 * third + 256 * k,
+				screen_data + 2048 * third + 256 * k + 32,
+				32 * 7);
+		}
+	}
+	for (k = 0; k < 8; k++)
+		memset(screen_data + 2048 * 2 + 32 * 7 + 256 * k, 0, 32);
+
+	memmove(screen_attr, screen_attr + 32, ATTRIB_SIZE - 32);
+	memset(screen_attr + ATTRIB_SIZE - 32, screen.attr, 32);
 }
 
 static void screen_advance(void)
