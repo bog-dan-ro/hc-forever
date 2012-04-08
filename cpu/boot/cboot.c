@@ -93,10 +93,31 @@ void putchar(char c)
 	screen_advance();
 }
 
+/* display a banner with all colors in the lower display third */
+static void rgb_banner()
+{
+	unsigned char k;
+	unsigned char *dp;
+	unsigned char attr = 0;
+
+	dp = &screen_attr[32 * 8 * 2];
+	dp = screen_attr;
+	for (k = 0; k < 64; k++) {
+		*dp++ = attr;
+		*dp++ = attr;
+		*dp++ = attr;
+		*dp++ = attr;
+		attr = (attr + 8) & 0x7f;
+	}
+}
+
 int main(void)
 {
 	screen_set_attr(COLOR_BLACK, COLOR_WHITE, 0, 0);
 	screen_clear();
+	rgb_banner();
+
+	screen.row = 9;
 	printf("HC-Forever (rev B)\n"
 		"Copyright \x7f 2005-2012 Alex Badea <vamposdecampos@gmail.com>\n\n");
 
