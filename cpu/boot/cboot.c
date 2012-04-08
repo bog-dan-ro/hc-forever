@@ -32,8 +32,8 @@ static volatile __at ATTRIB_ADDR uint8_t screen_attr[ATTRIB_SIZE];
 
 extern unsigned char font_data[];
 
-static inline void screen_set_attr(unsigned fgcol, unsigned bgcol,
-	unsigned bright, unsigned flash)
+static inline void screen_set_attr(uint8_t fgcol, uint8_t bgcol,
+	uint8_t bright, uint8_t flash)
 {
 	screen.attr = (fgcol & 0x7) | ((bgcol & 0x0f) << 3);
 	/* not yet used due to optimizer error */
@@ -41,12 +41,12 @@ static inline void screen_set_attr(unsigned fgcol, unsigned bgcol,
 	(void) flash;
 }
 
-static void screen_set_fgcol(unsigned fgcol)
+static void screen_set_fgcol(uint8_t fgcol)
 {
 	screen.attr = (screen.attr & ~0x07) | (fgcol & 0x7);
 }
 
-static void screen_set_bgcol(unsigned bgcol)
+static void screen_set_bgcol(uint8_t bgcol)
 {
 	screen.attr = (screen.attr & (~0x0f << 3)) | ((bgcol & 0xf) << 3);
 }
