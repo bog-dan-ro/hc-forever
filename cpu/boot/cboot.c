@@ -11,6 +11,7 @@ struct screen {
 	uint8_t row;		/* 0-based */
 	uint8_t col;		/* 0-based */
 	uint8_t attr;
+	uint8_t border;
 };
 
 enum color {
@@ -119,6 +120,12 @@ void putchar(char c)
 	screen_advance();
 }
 
+static void screen_set_border(uint8_t border)
+{
+	screen.border = border;
+	port_fe = screen.border;
+}
+
 /* display a banner with all colors in the lower display third */
 static void rgb_banner()
 {
@@ -141,6 +148,7 @@ int main(void)
 {
 	screen_set_attr(COLOR_BLACK, COLOR_WHITE, 0, 0);
 	screen_clear();
+	screen_set_border(7);
 	rgb_banner();
 
 	screen.row = 9;
